@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable, doctorsTable, pharmaciesTable } from "@workspace/db";
-import { RegisterBody, LoginBody } from "@workspace/api-zod";
+import { RegisterBody, LoginBody, UpdateProfileBody } from "@workspace/api-zod";
 import { hashPassword, verifyPassword, createToken, requireAuth, getUserId } from "../lib/auth";
 
 const router: IRouter = Router();
@@ -27,7 +27,6 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     .values({ name, email, passwordHash, phone, wilaya, role })
     .returning();
 
-  // Create doctor profile if registering as doctor
   if (role === "doctor" && parsed.data.doctorProfile) {
     const dp = parsed.data.doctorProfile;
     await db.insert(doctorsTable).values({
@@ -37,6 +36,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
       address: dp.address,
       phone: phone ?? null,
       availableDays: dp.availableDays,
+      availableHours: dp.availableHours,
       consultationFee: dp.consultationFee,
       isOnlineConsultation: dp.isOnlineConsultation ?? false,
       rating: 4.0,
@@ -44,19 +44,17 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     });
   }
 
-  // Create pharmacy profile if registering as pharmacy
   if (role === "pharmacy" && parsed.data.pharmacyProfile) {
     const pp = parsed.data.pharmacyProfile;
-    const openTime  = pp.openTime  ?? "08:00";
-    const closeTime = pp.closeTime ?? "21:00";
-    const is24h     = pp.is24h ?? false;
     await db.insert(pharmaciesTable).values({
       name,
       wilaya: wilaya ?? "Algiers",
       address: pp.address,
       phone: phone ?? null,
       isOpenNow: true,
-      is24h,
+      is24h: pp.is24h ?? false,
+      openTime: pp.is24h ? "00:00" : (pp.openTime ?? "08:00"),
+      closeTime: pp.is24h ? "23:59" : (pp.closeTime ?? "21:00"),
       medicinesJson: JSON.stringify([]),
     });
   }
@@ -65,13 +63,9 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   res.status(201).json({
     token,
     user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone ?? null,
-      wilaya: user.wilaya ?? null,
-      role: user.role,
-      createdAt: user.createdAt.toISOString(),
+      id: user.id, name: user.name, email: user.email,
+      phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+      role: user.role, createdAt: user.createdAt.toISOString(),
     },
   });
 });
@@ -94,13 +88,9 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   res.json({
     token,
     user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone ?? null,
-      wilaya: user.wilaya ?? null,
-      role: user.role,
-      createdAt: user.createdAt.toISOString(),
+      id: user.id, name: user.name, email: user.email,
+      phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+      role: user.role, createdAt: user.createdAt.toISOString(),
     },
   });
 });
@@ -108,19 +98,164 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-  if (!user) {
-    res.status(401).json({ error: "User not found" });
+  if (!user) { res.status(401).json({ error: "User not found" }); return; }
+  res.json({
+    id: user.id, name: user.name, email: user.email,
+    phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+    role: user.role, createdAt: user.createdAt.toISOString(),
+  });
+});
+
+// GET /auth/profile – full profile including doctor/pharmacy data
+router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "User not found" }); return; }
+
+  const response: any = {
+    id: user.id, name: user.name, email: user.email,
+    phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+    role: user.role, createdAt: user.createdAt.toISOString(),
+  };
+
+  if (user.role === "doctor") {
+    const doctors = await db.select().from(doctorsTable)
+      .where(eq(doctorsTable.name, user.name));
+    const doc = doctors[0];
+    if (doc) {
+      response.doctorProfile = {
+        specialty: doc.specialty,
+        address: doc.address,
+        availableDays: doc.availableDays,
+        availableHours: doc.availableHours,
+        consultationFee: doc.consultationFee,
+        isOnlineConsultation: doc.isOnlineConsultation,
+      };
+    }
+  }
+
+  if (user.role === "pharmacy") {
+    const pharmacies = await db.select().from(pharmaciesTable)
+      .where(eq(pharmaciesTable.name, user.name));
+    const ph = pharmacies[0];
+    if (ph) {
+      response.pharmacyProfile = {
+        address: ph.address,
+        is24h: ph.is24h,
+        openTime: ph.openTime,
+        closeTime: ph.closeTime,
+      };
+    }
+  }
+
+  res.json(response);
+});
+
+// PUT /auth/profile – update user info + optional doctor/pharmacy profile
+router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  const parsed = UpdateProfileBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
-  res.json({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    phone: user.phone ?? null,
-    wilaya: user.wilaya ?? null,
-    role: user.role,
-    createdAt: user.createdAt.toISOString(),
-  });
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "User not found" }); return; }
+
+  const { name, phone, wilaya } = parsed.data;
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({
+      name:   name   ?? user.name,
+      phone:  phone  ?? user.phone,
+      wilaya: wilaya ?? user.wilaya,
+    })
+    .where(eq(usersTable.id, userId))
+    .returning();
+
+  const response: any = {
+    id: updated.id, name: updated.name, email: updated.email,
+    phone: updated.phone ?? null, wilaya: updated.wilaya ?? null,
+    role: updated.role, createdAt: updated.createdAt.toISOString(),
+  };
+
+  // Update doctor profile
+  if (user.role === "doctor" && parsed.data.doctorProfile) {
+    const dp = parsed.data.doctorProfile;
+    const existing = await db.select().from(doctorsTable)
+      .where(eq(doctorsTable.name, user.name));
+
+    if (existing.length > 0) {
+      await db.update(doctorsTable)
+        .set({
+          name: updated.name,
+          specialty: dp.specialty,
+          address: dp.address,
+          wilaya: updated.wilaya ?? existing[0].wilaya,
+          phone: updated.phone ?? existing[0].phone,
+          availableDays: dp.availableDays,
+          availableHours: dp.availableHours,
+          consultationFee: dp.consultationFee,
+          isOnlineConsultation: dp.isOnlineConsultation ?? false,
+        })
+        .where(eq(doctorsTable.name, user.name));
+    } else {
+      await db.insert(doctorsTable).values({
+        name: updated.name, specialty: dp.specialty,
+        wilaya: updated.wilaya ?? "Algiers", address: dp.address,
+        phone: updated.phone ?? null,
+        availableDays: dp.availableDays,
+        availableHours: dp.availableHours,
+        consultationFee: dp.consultationFee,
+        isOnlineConsultation: dp.isOnlineConsultation ?? false,
+        rating: 4.0, reviewCount: 0,
+      });
+    }
+    response.doctorProfile = {
+      specialty: dp.specialty, address: dp.address,
+      availableDays: dp.availableDays, availableHours: dp.availableHours,
+      consultationFee: dp.consultationFee,
+      isOnlineConsultation: dp.isOnlineConsultation ?? false,
+    };
+  }
+
+  // Update pharmacy profile
+  if (user.role === "pharmacy" && parsed.data.pharmacyProfile) {
+    const pp = parsed.data.pharmacyProfile;
+    const existing = await db.select().from(pharmaciesTable)
+      .where(eq(pharmaciesTable.name, user.name));
+
+    const newOpenTime  = pp.is24h ? "00:00" : (pp.openTime  ?? "08:00");
+    const newCloseTime = pp.is24h ? "23:59" : (pp.closeTime ?? "21:00");
+    if (existing.length > 0) {
+      await db.update(pharmaciesTable)
+        .set({
+          name: updated.name, address: pp.address,
+          wilaya: updated.wilaya ?? existing[0].wilaya,
+          phone: updated.phone ?? existing[0].phone,
+          is24h: pp.is24h ?? false,
+          openTime: newOpenTime,
+          closeTime: newCloseTime,
+        })
+        .where(eq(pharmaciesTable.name, user.name));
+    } else {
+      await db.insert(pharmaciesTable).values({
+        name: updated.name, wilaya: updated.wilaya ?? "Algiers",
+        address: pp.address, phone: updated.phone ?? null,
+        isOpenNow: true, is24h: pp.is24h ?? false,
+        openTime: newOpenTime, closeTime: newCloseTime,
+        medicinesJson: JSON.stringify([]),
+      });
+    }
+    response.pharmacyProfile = {
+      address: pp.address, is24h: pp.is24h ?? false,
+      openTime: newOpenTime, closeTime: newCloseTime,
+    };
+  }
+
+  res.json(response);
 });
 
 export default router;

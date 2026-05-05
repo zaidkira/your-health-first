@@ -47,6 +47,39 @@ export interface RegisterBody {
   pharmacyProfile?: PharmacyProfile;
 }
 
+export interface UpdateProfileBody {
+  name?: string;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  wilaya?: string | null;
+  doctorProfile?: DoctorProfile;
+  pharmacyProfile?: PharmacyProfile;
+}
+
+export type ProfileResponseRole =
+  (typeof ProfileResponseRole)[keyof typeof ProfileResponseRole];
+
+export const ProfileResponseRole = {
+  patient: "patient",
+  doctor: "doctor",
+  pharmacy: "pharmacy",
+} as const;
+
+export interface ProfileResponse {
+  id: number;
+  name: string;
+  email: string;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  wilaya?: string | null;
+  role: ProfileResponseRole;
+  createdAt: string;
+  doctorProfile?: DoctorProfile;
+  pharmacyProfile?: PharmacyProfile;
+}
+
 export interface LoginBody {
   email: string;
   password: string;

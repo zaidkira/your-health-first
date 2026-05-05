@@ -9,7 +9,8 @@ import {
   MapPin,
   Users,
   LogOut,
-  Menu
+  Menu,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,13 +21,13 @@ import {
 import { useState } from "react";
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Medications", href: "/medications", icon: Pill },
-  { name: "Medical Records", href: "/records", icon: FileText },
-  { name: "Doctors", href: "/doctors", icon: UserRound },
-  { name: "Appointments", href: "/appointments", icon: Calendar },
-  { name: "Pharmacies", href: "/pharmacies", icon: MapPin },
-  { name: "Family", href: "/family", icon: Users },
+  { name: "Dashboard",       href: "/dashboard",    icon: LayoutDashboard },
+  { name: "Medications",     href: "/medications",  icon: Pill            },
+  { name: "Medical Records", href: "/records",      icon: FileText        },
+  { name: "Doctors",         href: "/doctors",      icon: UserRound       },
+  { name: "Appointments",    href: "/appointments", icon: Calendar        },
+  { name: "Pharmacies",      href: "/pharmacies",   icon: MapPin          },
+  { name: "Family",          href: "/family",       icon: Users           },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -56,6 +57,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  const UserFooter = ({ onClick }: { onClick?: () => void }) => (
+    <div className="flex items-center gap-2">
+      <Link href="/profile" onClick={onClick} className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted transition-colors cursor-pointer min-w-0">
+          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-sm font-bold">
+            {user?.name?.[0]?.toUpperCase() ?? "U"}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium truncate leading-tight">{user?.name}</span>
+            <span className="text-xs text-muted-foreground truncate leading-tight capitalize">
+              {user?.role ?? "patient"}
+            </span>
+          </div>
+          <Settings className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-auto" />
+        </div>
+      </Link>
+      <Button variant="ghost" size="icon" onClick={logout} title="Log out" className="shrink-0">
+        <LogOut className="h-4 w-4 text-muted-foreground" />
+      </Button>
+    </div>
+  );
+
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Desktop Sidebar */}
@@ -72,17 +95,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <NavLinks />
         </div>
         <div className="p-4 border-t border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col truncate pr-2">
-              <span className="text-sm font-medium truncate">{user?.name}</span>
-              <span className="text-xs text-muted-foreground truncate">
-                {user?.email}
-              </span>
-            </div>
-            <Button variant="ghost" size="icon" onClick={logout} title="Log out">
-              <LogOut className="h-5 w-5 text-muted-foreground" />
-            </Button>
-          </div>
+          <UserFooter />
         </div>
       </aside>
 
@@ -112,17 +125,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <NavLinks onClick={() => setMobileMenuOpen(false)} />
               </div>
               <div className="p-4 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col truncate pr-2">
-                    <span className="text-sm font-medium truncate">{user?.name}</span>
-                    <span className="text-xs text-muted-foreground truncate">
-                      {user?.email}
-                    </span>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={logout}>
-                    <LogOut className="h-5 w-5" />
-                  </Button>
-                </div>
+                <UserFooter onClick={() => setMobileMenuOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>

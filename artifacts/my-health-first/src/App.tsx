@@ -14,6 +14,7 @@ import Doctors from "@/pages/doctors";
 import Appointments from "@/pages/appointments";
 import Pharmacies from "@/pages/pharmacies";
 import Family from "@/pages/family";
+import Profile from "@/pages/profile";
 import AppLayout from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,9 @@ function Router() {
       </Route>
       <Route path="/family">
         <ProtectedRoute component={Family} />
+      </Route>
+      <Route path="/profile">
+        <ProtectedRoute component={Profile} />
       </Route>
       <Route component={NotFound} />
     </Switch>
