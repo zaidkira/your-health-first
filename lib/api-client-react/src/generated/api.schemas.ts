@@ -9,6 +9,22 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface DoctorProfile {
+  specialty: string;
+  address: string;
+  availableDays: string;
+  availableHours: string;
+  consultationFee: number;
+  isOnlineConsultation?: boolean;
+}
+
+export interface PharmacyProfile {
+  address: string;
+  is24h?: boolean;
+  openTime?: string;
+  closeTime?: string;
+}
+
 export type RegisterBodyRole =
   (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
 
@@ -27,6 +43,8 @@ export interface RegisterBody {
   /** @nullable */
   wilaya?: string | null;
   role?: RegisterBodyRole;
+  doctorProfile?: DoctorProfile;
+  pharmacyProfile?: PharmacyProfile;
 }
 
 export interface LoginBody {

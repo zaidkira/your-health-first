@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, usersTable } from "@workspace/db";
+import { db, usersTable, doctorsTable, pharmaciesTable } from "@workspace/db";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { hashPassword, verifyPassword, createToken, requireAuth, getUserId } from "../lib/auth";
 
@@ -22,7 +22,44 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
   const passwordHash = hashPassword(password);
   const role = parsed.data.role ?? "patient";
-  const [user] = await db.insert(usersTable).values({ name, email, passwordHash, phone, wilaya, role }).returning();
+  const [user] = await db
+    .insert(usersTable)
+    .values({ name, email, passwordHash, phone, wilaya, role })
+    .returning();
+
+  // Create doctor profile if registering as doctor
+  if (role === "doctor" && parsed.data.doctorProfile) {
+    const dp = parsed.data.doctorProfile;
+    await db.insert(doctorsTable).values({
+      name,
+      specialty: dp.specialty,
+      wilaya: wilaya ?? "Algiers",
+      address: dp.address,
+      phone: phone ?? null,
+      availableDays: dp.availableDays,
+      consultationFee: dp.consultationFee,
+      isOnlineConsultation: dp.isOnlineConsultation ?? false,
+      rating: 4.0,
+      reviewCount: 0,
+    });
+  }
+
+  // Create pharmacy profile if registering as pharmacy
+  if (role === "pharmacy" && parsed.data.pharmacyProfile) {
+    const pp = parsed.data.pharmacyProfile;
+    const openTime  = pp.openTime  ?? "08:00";
+    const closeTime = pp.closeTime ?? "21:00";
+    const is24h     = pp.is24h ?? false;
+    await db.insert(pharmaciesTable).values({
+      name,
+      wilaya: wilaya ?? "Algiers",
+      address: pp.address,
+      phone: phone ?? null,
+      isOpenNow: true,
+      is24h,
+      medicinesJson: JSON.stringify([]),
+    });
+  }
 
   const token = createToken(user.id);
   res.status(201).json({
