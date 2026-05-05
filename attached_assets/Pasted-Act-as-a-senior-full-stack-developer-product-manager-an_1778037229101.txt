@@ -1,0 +1,103 @@
+Act as a senior full-stack developer, product manager, and UI/UX designer.
+
+Build a complete, production-ready web application called "My Health First".
+
+🌍 Context:
+This is a digital healthcare platform designed for users in Algeria to manage their daily health easily.
+
+🎯 Core Idea:
+An all-in-one platform that allows users to:
+- Track medications and receive reminders
+- Store and manage digital medical records
+- Book doctor appointments and online consultations
+- Search for medicines in nearby pharmacies
+
+🧱 Tech Stack:
+Frontend:
+- React.js (with modern hooks)
+- Tailwind CSS for styling
+
+Backend:
+- Node.js with Express
+
+Database:
+- MongoDB (with Mongoose)
+
+Other:
+- JWT Authentication
+- REST API architecture
+
+📱 Main Features:
+
+1. Authentication:
+- Register / Login system
+- Secure JWT-based authentication
+
+2. Dashboard:
+- Daily health summary
+- Upcoming reminders
+- Quick access to features
+
+3. Medication Reminder System:
+- Add, edit, delete medications
+- Set schedule (time, frequency, dosage)
+- Notification system (simulate if needed)
+
+4. Medical Records:
+- Upload and store files (PDF, images)
+- Categorize: prescriptions, tests, scans
+- Secure and private access
+
+5. Doctors & Appointments:
+- List of doctors (mock data)
+- Book appointment system
+- Online consultation (chat UI simulation)
+
+6. Pharmacy & Medicine Search:
+- Search medicines by name
+- Show pharmacies where available (mock data)
+- Map integration (Google Maps or simple placeholder)
+
+7. Family Management:
+- Add family members
+- Manage their medications and records
+
+🎨 UI/UX Requirements:
+- Clean, modern medical design
+- Colors: white, light blue, soft green
+- Simple navigation (sidebar or top nav)
+- Responsive (mobile + desktop)
+- Arabic + French friendly structure (no need full translation, just ready for it)
+
+📁 Project Structure:
+- Organize frontend and backend in separate folders
+- Use clean, scalable architecture
+
+🧪 MVP Priority:
+Focus first on:
+- Authentication
+- Medication reminders
+- Medical records (upload + view)
+- Basic pharmacy search
+- Simple dashboard
+
+💰 Monetization (just structure, no payment needed):
+- Subscription model placeholder
+- Doctor consultation fee placeholder
+
+📦 Output Requirements:
+- Full frontend code (React)
+- Full backend code (Express)
+- MongoDB schema models
+- API routes
+- Example data (seed data)
+- Clear instructions to run the project locally
+
+🧠 Bonus:
+- Add comments in code for beginners
+- Keep everything simple but scalable
+
+⚠️ Important:
+- Do NOT overcomplicate
+- Focus on clean working MVP
+- Code must be understandable for intermediate developers

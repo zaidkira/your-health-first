@@ -3,13 +3,29 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: My Health First API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: dashboard
+    description: Dashboard summary
+  - name: medications
+    description: Medication tracking
+  - name: records
+    description: Medical records
+  - name: doctors
+    description: Doctor listings
+  - name: appointments
+    description: Appointment booking
+  - name: pharmacies
+    description: Pharmacy and medicine search
+  - name: family
+    description: Family member management
 paths:
   /healthz:
     get:
@@ -24,6 +40,496 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /medications:
+    get:
+      operationId: listMedications
+      tags: [medications]
+      summary: List all medications for current user
+      responses:
+        "200":
+          description: List of medications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Medication"
+    post:
+      operationId: createMedication
+      tags: [medications]
+      summary: Add a new medication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMedicationBody"
+      responses:
+        "201":
+          description: Medication created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medication"
+
+  /medications/today:
+    get:
+      operationId: getTodaysMedications
+      tags: [medications]
+      summary: Get today's medication schedule
+      responses:
+        "200":
+          description: Today's medications with taken status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MedicationReminder"
+
+  /medications/{id}:
+    get:
+      operationId: getMedication
+      tags: [medications]
+      summary: Get a medication
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Medication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medication"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateMedication
+      tags: [medications]
+      summary: Update a medication
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMedicationBody"
+      responses:
+        "200":
+          description: Updated medication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Medication"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteMedication
+      tags: [medications]
+      summary: Delete a medication
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /medications/{id}/taken:
+    post:
+      operationId: markMedicationTaken
+      tags: [medications]
+      summary: Mark a medication as taken for today
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MedicationReminder"
+
+  /records:
+    get:
+      operationId: listRecords
+      tags: [records]
+      summary: List medical records
+      responses:
+        "200":
+          description: List of medical records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MedicalRecord"
+    post:
+      operationId: createRecord
+      tags: [records]
+      summary: Create a medical record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecordBody"
+      responses:
+        "201":
+          description: Record created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MedicalRecord"
+
+  /records/{id}:
+    get:
+      operationId: getRecord
+      tags: [records]
+      summary: Get a medical record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Medical record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MedicalRecord"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteRecord
+      tags: [records]
+      summary: Delete a medical record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /doctors:
+    get:
+      operationId: listDoctors
+      tags: [doctors]
+      summary: List all doctors
+      parameters:
+        - name: specialty
+          in: query
+          schema:
+            type: string
+        - name: wilaya
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of doctors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doctor"
+
+  /doctors/{id}:
+    get:
+      operationId: getDoctor
+      tags: [doctors]
+      summary: Get a doctor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Doctor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doctor"
+        "404":
+          description: Not found
+
+  /appointments:
+    get:
+      operationId: listAppointments
+      tags: [appointments]
+      summary: List appointments for current user
+      responses:
+        "200":
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+    post:
+      operationId: createAppointment
+      tags: [appointments]
+      summary: Book an appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAppointmentBody"
+      responses:
+        "201":
+          description: Appointment booked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /appointments/upcoming:
+    get:
+      operationId: getUpcomingAppointments
+      tags: [appointments]
+      summary: Get next 3 upcoming appointments
+      responses:
+        "200":
+          description: Upcoming appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+
+  /appointments/{id}:
+    patch:
+      operationId: updateAppointment
+      tags: [appointments]
+      summary: Update an appointment status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAppointmentBody"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteAppointment
+      tags: [appointments]
+      summary: Cancel an appointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Cancelled
+
+  /pharmacies:
+    get:
+      operationId: listPharmacies
+      tags: [pharmacies]
+      summary: Search pharmacies and medicines
+      parameters:
+        - name: medicine
+          in: query
+          schema:
+            type: string
+        - name: wilaya
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of pharmacies with medicine availability
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pharmacy"
+
+  /family:
+    get:
+      operationId: listFamilyMembers
+      tags: [family]
+      summary: List family members
+      responses:
+        "200":
+          description: List of family members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FamilyMember"
+    post:
+      operationId: createFamilyMember
+      tags: [family]
+      summary: Add a family member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFamilyMemberBody"
+      responses:
+        "201":
+          description: Family member created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyMember"
+
+  /family/{id}:
+    patch:
+      operationId: updateFamilyMember
+      tags: [family]
+      summary: Update a family member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFamilyMemberBody"
+      responses:
+        "200":
+          description: Updated family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyMember"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteFamilyMember
+      tags: [family]
+      summary: Remove a family member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +540,463 @@ components:
       required:
         - status
 
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: ["string", "null"]
+        wilaya:
+          type: ["string", "null"]
+      required:
+        - name
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        wilaya:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - createdAt
+
+    DashboardSummary:
+      type: object
+      properties:
+        medicationsToday:
+          type: integer
+        medicationsTakenToday:
+          type: integer
+        upcomingAppointments:
+          type: integer
+        totalRecords:
+          type: integer
+        familyMembers:
+          type: integer
+        activeMedications:
+          type: integer
+      required:
+        - medicationsToday
+        - medicationsTakenToday
+        - upcomingAppointments
+        - totalRecords
+        - familyMembers
+        - activeMedications
+
+    Medication:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        familyMemberId:
+          type: ["integer", "null"]
+        name:
+          type: string
+        dosage:
+          type: string
+        frequency:
+          type: string
+        times:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - name
+        - dosage
+        - frequency
+        - times
+        - startDate
+        - isActive
+        - createdAt
+
+    CreateMedicationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        dosage:
+          type: string
+        frequency:
+          type: string
+        times:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        familyMemberId:
+          type: ["integer", "null"]
+      required:
+        - name
+        - dosage
+        - frequency
+        - times
+        - startDate
+
+    UpdateMedicationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        dosage:
+          type: string
+        frequency:
+          type: string
+        times:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+
+    MedicationReminder:
+      type: object
+      properties:
+        id:
+          type: integer
+        medicationId:
+          type: integer
+        medicationName:
+          type: string
+        dosage:
+          type: string
+        scheduledTime:
+          type: string
+        taken:
+          type: boolean
+        takenAt:
+          type: ["string", "null"]
+        date:
+          type: string
+        familyMemberName:
+          type: ["string", "null"]
+      required:
+        - id
+        - medicationId
+        - medicationName
+        - dosage
+        - scheduledTime
+        - taken
+        - date
+
+    MedicalRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        familyMemberId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: ["string", "null"]
+        fileUrl:
+          type: ["string", "null"]
+        fileName:
+          type: ["string", "null"]
+        recordDate:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - title
+        - category
+        - recordDate
+        - createdAt
+
+    CreateRecordBody:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: ["string", "null"]
+        fileUrl:
+          type: ["string", "null"]
+        fileName:
+          type: ["string", "null"]
+        recordDate:
+          type: string
+        familyMemberId:
+          type: ["integer", "null"]
+      required:
+        - title
+        - category
+        - recordDate
+
+    Doctor:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        specialty:
+          type: string
+        wilaya:
+          type: string
+        address:
+          type: string
+        phone:
+          type: ["string", "null"]
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        availableDays:
+          type: string
+        consultationFee:
+          type: number
+        imageUrl:
+          type: ["string", "null"]
+        isOnlineConsultation:
+          type: boolean
+      required:
+        - id
+        - name
+        - specialty
+        - wilaya
+        - address
+        - rating
+        - reviewCount
+        - availableDays
+        - consultationFee
+        - isOnlineConsultation
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        doctorId:
+          type: integer
+        doctorName:
+          type: string
+        doctorSpecialty:
+          type: string
+        appointmentDate:
+          type: string
+        appointmentTime:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        isOnline:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - doctorId
+        - doctorName
+        - doctorSpecialty
+        - appointmentDate
+        - appointmentTime
+        - status
+        - isOnline
+        - createdAt
+
+    CreateAppointmentBody:
+      type: object
+      properties:
+        doctorId:
+          type: integer
+        appointmentDate:
+          type: string
+        appointmentTime:
+          type: string
+        notes:
+          type: ["string", "null"]
+        isOnline:
+          type: boolean
+      required:
+        - doctorId
+        - appointmentDate
+        - appointmentTime
+
+    UpdateAppointmentBody:
+      type: object
+      properties:
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        appointmentDate:
+          type: string
+        appointmentTime:
+          type: string
+
+    Pharmacy:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        wilaya:
+          type: string
+        address:
+          type: string
+        phone:
+          type: ["string", "null"]
+        isOpenNow:
+          type: boolean
+        is24h:
+          type: boolean
+        medicines:
+          type: array
+          items:
+            $ref: "#/components/schemas/Medicine"
+        lat:
+          type: ["number", "null"]
+        lng:
+          type: ["number", "null"]
+      required:
+        - id
+        - name
+        - wilaya
+        - address
+        - isOpenNow
+        - is24h
+        - medicines
+
+    Medicine:
+      type: object
+      properties:
+        name:
+          type: string
+        available:
+          type: boolean
+        price:
+          type: ["number", "null"]
+      required:
+        - name
+        - available
+
+    FamilyMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        relationship:
+          type: string
+        dateOfBirth:
+          type: ["string", "null"]
+        bloodType:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - name
+        - relationship
+        - createdAt
+
+    CreateFamilyMemberBody:
+      type: object
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        dateOfBirth:
+          type: ["string", "null"]
+        bloodType:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required:
+        - name
+        - relationship
+
+    UpdateFamilyMemberBody:
+      type: object
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        dateOfBirth:
+          type: ["string", "null"]
+        bloodType:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]

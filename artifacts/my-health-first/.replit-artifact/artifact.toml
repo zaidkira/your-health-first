@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "My Health First"
+version = "1.0.0"
+id = "artifacts/my-health-first"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25558
+
+[services.development]
+run = "pnpm --filter @workspace/my-health-first run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/my-health-first", "run", "build" ]
+publicDir = "artifacts/my-health-first/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25558"
+BASE_PATH = "/"
