@@ -84,6 +84,92 @@ export const GetMeResponse = zod.object({
 });
 
 /**
+ * @summary Get current user full profile (includes doctor/pharmacy data)
+ */
+export const GetProfileResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  phone: zod.string().nullish(),
+  wilaya: zod.string().nullish(),
+  role: zod.enum(["patient", "doctor", "pharmacy"]),
+  createdAt: zod.string(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+    })
+    .optional(),
+});
+
+/**
+ * @summary Update current user profile
+ */
+export const UpdateProfileBody = zod.object({
+  name: zod.string().optional(),
+  phone: zod.string().nullish(),
+  wilaya: zod.string().nullish(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+    })
+    .optional(),
+});
+
+export const UpdateProfileResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  phone: zod.string().nullish(),
+  wilaya: zod.string().nullish(),
+  role: zod.enum(["patient", "doctor", "pharmacy"]),
+  createdAt: zod.string(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+    })
+    .optional(),
+});
+
+/**
  * @summary Get dashboard summary stats
  */
 export const GetDashboardSummaryResponse = zod.object({

@@ -98,6 +98,42 @@ paths:
         "401":
           description: Unauthorized
 
+  /auth/profile:
+    get:
+      operationId: getProfile
+      tags: [auth]
+      summary: Get current user full profile (includes doctor/pharmacy data)
+      responses:
+        "200":
+          description: Full profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateProfile
+      tags: [auth]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
   /dashboard/summary:
     get:
       operationId: getDashboardSummary
@@ -601,6 +637,49 @@ components:
         - name
         - email
         - password
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        wilaya:
+          type: ["string", "null"]
+        doctorProfile:
+          $ref: "#/components/schemas/DoctorProfile"
+        pharmacyProfile:
+          $ref: "#/components/schemas/PharmacyProfile"
+
+    ProfileResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        wilaya:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [patient, doctor, pharmacy]
+        createdAt:
+          type: string
+        doctorProfile:
+          $ref: "#/components/schemas/DoctorProfile"
+        pharmacyProfile:
+          $ref: "#/components/schemas/PharmacyProfile"
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
 
     LoginBody:
       type: object

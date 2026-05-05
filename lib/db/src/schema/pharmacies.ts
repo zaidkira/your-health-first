@@ -10,6 +10,8 @@ export const pharmaciesTable = pgTable("pharmacies", {
   phone: text("phone"),
   isOpenNow: boolean("is_open_now").notNull().default(true),
   is24h: boolean("is_24h").notNull().default(false),
+  openTime: text("open_time").notNull().default("08:00"),
+  closeTime: text("close_time").notNull().default("21:00"),
   medicinesJson: text("medicines_json").notNull().default("[]"),
   lat: real("lat"),
   lng: real("lng"),
