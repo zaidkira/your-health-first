@@ -553,6 +553,10 @@ components:
           type: ["string", "null"]
         wilaya:
           type: ["string", "null"]
+        role:
+          type: string
+          enum: [patient, doctor, pharmacy]
+          default: patient
       required:
         - name
         - email
@@ -593,12 +597,16 @@ components:
           type: ["string", "null"]
         wilaya:
           type: ["string", "null"]
+        role:
+          type: string
+          enum: [patient, doctor, pharmacy]
         createdAt:
           type: string
       required:
         - id
         - name
         - email
+        - role
         - createdAt
 
     DashboardSummary:

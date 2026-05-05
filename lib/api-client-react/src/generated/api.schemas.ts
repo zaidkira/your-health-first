@@ -9,6 +9,15 @@ export interface HealthStatus {
   status: string;
 }
 
+export type RegisterBodyRole =
+  (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
+
+export const RegisterBodyRole = {
+  patient: "patient",
+  doctor: "doctor",
+  pharmacy: "pharmacy",
+} as const;
+
 export interface RegisterBody {
   name: string;
   email: string;
@@ -17,12 +26,21 @@ export interface RegisterBody {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  role?: RegisterBodyRole;
 }
 
 export interface LoginBody {
   email: string;
   password: string;
 }
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export const UserRole = {
+  patient: "patient",
+  doctor: "doctor",
+  pharmacy: "pharmacy",
+} as const;
 
 export interface User {
   id: number;
@@ -32,6 +50,7 @@ export interface User {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  role: UserRole;
   createdAt: string;
 }
 

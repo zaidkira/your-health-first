@@ -21,7 +21,8 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   }
 
   const passwordHash = hashPassword(password);
-  const [user] = await db.insert(usersTable).values({ name, email, passwordHash, phone, wilaya }).returning();
+  const role = parsed.data.role ?? "patient";
+  const [user] = await db.insert(usersTable).values({ name, email, passwordHash, phone, wilaya, role }).returning();
 
   const token = createToken(user.id);
   res.status(201).json({
@@ -32,6 +33,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
       email: user.email,
       phone: user.phone ?? null,
       wilaya: user.wilaya ?? null,
+      role: user.role,
       createdAt: user.createdAt.toISOString(),
     },
   });
@@ -60,6 +62,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       email: user.email,
       phone: user.phone ?? null,
       wilaya: user.wilaya ?? null,
+      role: user.role,
       createdAt: user.createdAt.toISOString(),
     },
   });
@@ -78,6 +81,7 @@ router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
     email: user.email,
     phone: user.phone ?? null,
     wilaya: user.wilaya ?? null,
+    role: user.role,
     createdAt: user.createdAt.toISOString(),
   });
 });
