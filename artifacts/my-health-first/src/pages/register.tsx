@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pill, UserRound, Stethoscope, Store, Check } from "lucide-react";
+import { Pill, UserRound, Stethoscope, Store, Check, MapPin, Clock, CreditCard, Wifi } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WILAYAS = [
@@ -29,36 +29,48 @@ const WILAYAS = [
   "Aïn Témouchent","Ghardaïa","Relizane",
 ];
 
+const SPECIALTIES = [
+  "General Practitioner","Cardiologist","Dermatologist","Pediatrician",
+  "Neurologist","Orthopedist","Ophthalmologist","Gynecologist","Dentist",
+  "Psychiatrist","Radiologist","Endocrinologist","Urologist","ENT Specialist",
+];
+
+const DAY_OPTIONS = [
+  "Mon-Fri","Mon-Sat","Mon-Sun","Sun-Thu","Sat-Thu","Tue-Sat","Mon-Wed-Fri",
+];
+
+const HOURS = Array.from({ length: 24 }, (_, i) =>
+  `${String(i).padStart(2, "0")}:00`
+);
+
 type Role = "patient" | "doctor" | "pharmacy";
 
 const ROLES: { value: Role; label: string; description: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  {
-    value: "patient",
-    label: "Patient",
-    description: "Manage your health, medications & appointments",
-    icon: UserRound,
-  },
-  {
-    value: "doctor",
-    label: "Doctor",
-    description: "Provide consultations and manage your patients",
-    icon: Stethoscope,
-  },
-  {
-    value: "pharmacy",
-    label: "Pharmacy",
-    description: "List your medicines and help patients find stock",
-    icon: Store,
-  },
+  { value: "patient",  label: "Patient",  description: "Manage health, medications & appointments", icon: UserRound  },
+  { value: "doctor",   label: "Doctor",   description: "Provide consultations & manage patients",   icon: Stethoscope },
+  { value: "pharmacy", label: "Pharmacy", description: "List medicines & help patients find stock",  icon: Store       },
 ];
 
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  name:     z.string().min(2, "Name must be at least 2 characters"),
+  email:    z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  phone: z.string().optional(),
-  wilaya: z.string().min(1, "Wilaya is required"),
-  role: z.enum(["patient", "doctor", "pharmacy"]),
+  phone:    z.string().optional(),
+  wilaya:   z.string().min(1, "Wilaya is required"),
+  role:     z.enum(["patient", "doctor", "pharmacy"]),
+  // Doctor fields
+  doctorSpecialty:         z.string().optional(),
+  doctorAddress:           z.string().optional(),
+  doctorAvailableDays:     z.string().optional(),
+  doctorOpenTime:          z.string().optional(),
+  doctorCloseTime:         z.string().optional(),
+  doctorFee:               z.coerce.number().optional(),
+  doctorOnline:            z.boolean().optional(),
+  // Pharmacy fields
+  pharmacyAddress:         z.string().optional(),
+  pharmacyIs24h:           z.boolean().optional(),
+  pharmacyOpenTime:        z.string().optional(),
+  pharmacyCloseTime:       z.string().optional(),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -73,12 +85,13 @@ export default function Register() {
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      phone: "",
-      wilaya: "",
+      name: "", email: "", password: "", phone: "", wilaya: "",
       role: "patient",
+      doctorSpecialty: "", doctorAddress: "", doctorAvailableDays: "Mon-Fri",
+      doctorOpenTime: "08:00", doctorCloseTime: "17:00",
+      doctorFee: undefined, doctorOnline: false,
+      pharmacyAddress: "", pharmacyIs24h: false,
+      pharmacyOpenTime: "08:00", pharmacyCloseTime: "21:00",
     },
   });
 
@@ -88,7 +101,32 @@ export default function Register() {
   }
 
   function onSubmit(data: RegisterFormValues) {
-    registerMutation.mutate({ data }, {
+    const payload: any = {
+      name: data.name, email: data.email, password: data.password,
+      phone: data.phone || null, wilaya: data.wilaya, role: data.role,
+    };
+
+    if (data.role === "doctor") {
+      payload.doctorProfile = {
+        specialty: data.doctorSpecialty,
+        address: data.doctorAddress,
+        availableDays: data.doctorAvailableDays,
+        availableHours: `${data.doctorOpenTime} - ${data.doctorCloseTime}`,
+        consultationFee: data.doctorFee ?? 2000,
+        isOnlineConsultation: data.doctorOnline ?? false,
+      };
+    }
+
+    if (data.role === "pharmacy") {
+      payload.pharmacyProfile = {
+        address: data.pharmacyAddress,
+        is24h: data.pharmacyIs24h ?? false,
+        openTime: data.pharmacyIs24h ? "00:00" : data.pharmacyOpenTime,
+        closeTime: data.pharmacyIs24h ? "23:59" : data.pharmacyCloseTime,
+      };
+    }
+
+    registerMutation.mutate({ data: payload }, {
       onSuccess: (res) => {
         setAuth(res.token, res.user);
         setLocation("/dashboard");
@@ -102,6 +140,9 @@ export default function Register() {
       }
     });
   }
+
+  const isDoctor   = selectedRole === "doctor";
+  const isPharmacy = selectedRole === "pharmacy";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
@@ -156,102 +197,257 @@ export default function Register() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {selectedRole === "doctor" ? "Full Name & Title" : selectedRole === "pharmacy" ? "Pharmacy Name" : "Full Name"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={
-                        selectedRole === "doctor" ? "Dr. Ahmed Benali" :
-                        selectedRole === "pharmacy" ? "Pharmacie Centrale" :
-                        "Ahmed Benali"
-                      }
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* ── Common fields ── */}
+            <FormField control={form.control} name="name" render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {isDoctor ? "Full Name & Title" : isPharmacy ? "Pharmacy Name" : "Full Name"}
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder={isDoctor ? "Dr. Ahmed Benali" : isPharmacy ? "Pharmacie Centrale" : "Ahmed Benali"} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="you@example.com" type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="email" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl><Input placeholder="you@example.com" type="email" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input placeholder="••••••••" type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="password" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl><Input placeholder="••••••••" type="password" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone (Optional)</FormLabel>
+              <FormField control={form.control} name="phone" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone {!isDoctor && !isPharmacy && "(Optional)"}</FormLabel>
+                  <FormControl><Input placeholder="05XX XX XX XX" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="wilaya" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Wilaya</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <Input placeholder="05XX XX XX XX" {...field} />
+                      <SelectTrigger><SelectValue placeholder="Select wilaya" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-60">
+                      {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            {/* ── Doctor-specific fields ── */}
+            {isDoctor && (
+              <div className="space-y-4 pt-2 border-t border-border">
+                <p className="text-sm font-semibold text-primary flex items-center gap-2 pt-1">
+                  <Stethoscope className="h-4 w-4" /> Doctor Information
+                </p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="doctorSpecialty" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Specialty</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Select specialty" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-60">
+                          {SPECIALTIES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="doctorFee" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Consultation Fee (DZD)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input className="pl-9" type="number" placeholder="2000" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <FormField control={form.control} name="doctorAddress" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Clinic / Cabinet Address</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input className="pl-9" placeholder="12 Rue Didouche Mourad, Algiers" {...field} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
+                )} />
 
-              <FormField
-                control={form.control}
-                name="wilaya"
-                render={({ field }) => (
+                <div className="grid grid-cols-3 gap-3">
+                  <FormField control={form.control} name="doctorAvailableDays" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Working Days</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DAY_OPTIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="doctorOpenTime" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Opens At</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-52">
+                          {HOURS.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="doctorCloseTime" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Closes At</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-52">
+                          {HOURS.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <FormField control={form.control} name="doctorOnline" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Wilaya</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select wilaya" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60">
-                        {WILAYAS.map(w => (
-                          <SelectItem key={w} value={w}>{w}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${field.value ? "border-primary bg-primary/5" : "border-border"}`}
+                      onClick={() => field.onChange(!field.value)}>
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${field.value ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
+                        <Wifi className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Online Consultations Available</p>
+                        <p className="text-xs text-muted-foreground">Patients can book video or phone consultations</p>
+                      </div>
+                      {field.value && <Check className="h-4 w-4 text-primary ml-auto" />}
+                    </div>
+                  </FormItem>
+                )} />
+              </div>
+            )}
+
+            {/* ── Pharmacy-specific fields ── */}
+            {isPharmacy && (
+              <div className="space-y-4 pt-2 border-t border-border">
+                <p className="text-sm font-semibold text-primary flex items-center gap-2 pt-1">
+                  <Store className="h-4 w-4" /> Pharmacy Information
+                </p>
+
+                <FormField control={form.control} name="pharmacyAddress" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pharmacy Address</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input className="pl-9" placeholder="45 Rue des Frères Bouchama, Oran" {...field} />
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
-            </div>
+                )} />
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={registerMutation.isPending}
-            >
-              {registerMutation.isPending ? "Creating account..." : `Register as ${ROLES.find(r => r.value === selectedRole)?.label}`}
+                <FormField control={form.control} name="pharmacyIs24h" render={({ field }) => (
+                  <FormItem>
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${field.value ? "border-primary bg-primary/5" : "border-border"}`}
+                      onClick={() => field.onChange(!field.value)}>
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${field.value ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
+                        <Clock className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Open 24 Hours</p>
+                        <p className="text-xs text-muted-foreground">Your pharmacy is available around the clock</p>
+                      </div>
+                      {field.value && <Check className="h-4 w-4 text-primary ml-auto" />}
+                    </div>
+                  </FormItem>
+                )} />
+
+                {!form.watch("pharmacyIs24h") && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="pharmacyOpenTime" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Opens At</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-52">
+                            {HOURS.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    <FormField control={form.control} name="pharmacyCloseTime" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Closes At</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-52">
+                            {HOURS.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full !mt-6" disabled={registerMutation.isPending}>
+              {registerMutation.isPending
+                ? "Creating account..."
+                : `Register as ${ROLES.find(r => r.value === selectedRole)?.label}`}
             </Button>
           </form>
         </Form>

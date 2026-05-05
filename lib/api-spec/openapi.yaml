@@ -540,6 +540,42 @@ components:
       required:
         - status
 
+    DoctorProfile:
+      type: object
+      properties:
+        specialty:
+          type: string
+        address:
+          type: string
+        availableDays:
+          type: string
+        availableHours:
+          type: string
+        consultationFee:
+          type: number
+        isOnlineConsultation:
+          type: boolean
+      required:
+        - specialty
+        - address
+        - availableDays
+        - availableHours
+        - consultationFee
+
+    PharmacyProfile:
+      type: object
+      properties:
+        address:
+          type: string
+        is24h:
+          type: boolean
+        openTime:
+          type: string
+        closeTime:
+          type: string
+      required:
+        - address
+
     RegisterBody:
       type: object
       properties:
@@ -557,6 +593,10 @@ components:
           type: string
           enum: [patient, doctor, pharmacy]
           default: patient
+        doctorProfile:
+          $ref: "#/components/schemas/DoctorProfile"
+        pharmacyProfile:
+          $ref: "#/components/schemas/PharmacyProfile"
       required:
         - name
         - email
