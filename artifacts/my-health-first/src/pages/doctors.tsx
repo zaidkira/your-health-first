@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useListDoctors, useCreateAppointment, getListAppointmentsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Star, Phone, MapPin, Clock, Video, CalendarPlus, Search } from "lucide-react";
+import { Star, Phone, MapPin, Clock, Video, CalendarPlus, Search, Stethoscope, Wifi, TrendingUp, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,8 @@ export default function Doctors() {
   const [bookingDoctor, setBookingDoctor] = useState<null | { id: number; name: string; specialty: string }>(null);
   const [booking, setBooking] = useState({ date: "", time: "09:00", isOnline: false, notes: "" });
 
+  // Always fetch all doctors for stats
+  const { data: allDoctors } = useListDoctors({}, { query: { queryKey: ["doctors-all"] as any } });
   const { data: doctors, isLoading } = useListDoctors(
     { specialty: specialty || undefined, wilaya: wilaya || undefined },
     { query: { queryKey: ["doctors", specialty, wilaya] as any } }
@@ -32,6 +34,17 @@ export default function Doctors() {
   const filtered = (doctors ?? []).filter(d =>
     !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Stats computed from all doctors
+  const all = allDoctors ?? [];
+  const totalDoctors = all.length;
+  const onlineCount = all.filter(d => d.isOnlineConsultation).length;
+  const avgRating = all.length > 0 ? (all.reduce((s, d) => s + d.rating, 0) / all.length).toFixed(1) : "—";
+  const specialtyCounts = all.reduce<Record<string, number>>((acc, d) => {
+    acc[d.specialty] = (acc[d.specialty] ?? 0) + 1;
+    return acc;
+  }, {});
+  const topSpecialty = Object.entries(specialtyCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
   function handleBook(e: React.FormEvent) {
     e.preventDefault();
@@ -57,6 +70,81 @@ export default function Doctors() {
         <p className="text-muted-foreground mt-1">Browse doctors and book appointments online.</p>
       </div>
 
+      {/* Dashboard Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-primary">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{totalDoctors}</p>
+              <p className="text-xs text-muted-foreground">Total Doctors</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-400">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+              <Wifi className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{onlineCount}</p>
+              <p className="text-xs text-muted-foreground">Online Available</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-amber-400">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+              <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{avgRating}</p>
+              <p className="text-xs text-muted-foreground">Avg. Rating</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-emerald-400">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <Stethoscope className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold leading-tight">{topSpecialty}</p>
+              <p className="text-xs text-muted-foreground">Top Specialty</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Specialty quick-filter chips */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Browse by Specialty</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSpecialty("")}
+            className={`px-3 py-1 rounded-full text-sm border transition-colors ${specialty === "" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
+          >
+            All
+          </button>
+          {Object.entries(specialtyCounts).sort((a, b) => b[1] - a[1]).map(([sp, count]) => (
+            <button
+              key={sp}
+              onClick={() => setSpecialty(sp === specialty ? "" : sp)}
+              className={`px-3 py-1 rounded-full text-sm border transition-colors flex items-center gap-1.5 ${specialty === sp ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
+            >
+              {sp}
+              <span className={`text-xs rounded-full px-1.5 py-0 ${specialty === sp ? "bg-white/20" : "bg-muted"}`}>{count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Search & filter bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -78,6 +166,16 @@ export default function Doctors() {
         </Select>
       </div>
 
+      {/* Results count */}
+      {!isLoading && (
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-semibold text-foreground">{filtered.length}</span> doctor{filtered.length !== 1 ? "s" : ""}
+          {specialty && <> in <span className="font-semibold text-foreground">{specialty}</span></>}
+          {wilaya && <> · <span className="font-semibold text-foreground">{wilaya}</span></>}
+        </p>
+      )}
+
+      {/* Doctor cards */}
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Loading doctors...</div>
       ) : filtered.length === 0 ? (
@@ -85,10 +183,10 @@ export default function Doctors() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map(doctor => (
-            <Card key={doctor.id} className="hover:shadow-md transition-shadow">
+            <Card key={doctor.id} className="hover:shadow-md transition-shadow group">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 group-hover:bg-primary/20 transition-colors">
                     {doctor.name.charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -127,6 +225,7 @@ export default function Doctors() {
         </div>
       )}
 
+      {/* Booking dialog */}
       <Dialog open={!!bookingDoctor} onOpenChange={v => !v && setBookingDoctor(null)}>
         <DialogContent>
           <DialogHeader>
@@ -134,7 +233,15 @@ export default function Doctors() {
           </DialogHeader>
           {bookingDoctor && (
             <form onSubmit={handleBook} className="space-y-4 mt-2">
-              <p className="text-sm text-muted-foreground">Dr. {bookingDoctor.name} — {bookingDoctor.specialty}</p>
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                  {bookingDoctor.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Dr. {bookingDoctor.name}</p>
+                  <p className="text-xs text-muted-foreground">{bookingDoctor.specialty}</p>
+                </div>
+              </div>
               <div className="space-y-1">
                 <Label>Date</Label>
                 <Input type="date" min={new Date().toISOString().split("T")[0]} value={booking.date} onChange={e => setBooking(b => ({ ...b, date: e.target.value }))} required />
