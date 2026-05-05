@@ -18,12 +18,17 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Register a new user
  */
+export const registerBodyRoleDefault = `patient`;
+
 export const RegisterBody = zod.object({
   name: zod.string(),
   email: zod.string(),
   password: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  role: zod
+    .enum(["patient", "doctor", "pharmacy"])
+    .default(registerBodyRoleDefault),
 });
 
 /**
@@ -42,6 +47,7 @@ export const LoginResponse = zod.object({
     email: zod.string(),
     phone: zod.string().nullish(),
     wilaya: zod.string().nullish(),
+    role: zod.enum(["patient", "doctor", "pharmacy"]),
     createdAt: zod.string(),
   }),
 });
@@ -55,6 +61,7 @@ export const GetMeResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  role: zod.enum(["patient", "doctor", "pharmacy"]),
   createdAt: zod.string(),
 });
 
