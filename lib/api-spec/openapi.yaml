@@ -1155,6 +1155,10 @@ components:
           type: integer
         userId:
           type: integer
+        familyMemberId:
+          type: ["integer", "null"]
+        familyMemberName:
+          type: ["string", "null"]
         doctorId:
           type: integer
         doctorName:
@@ -1190,6 +1194,8 @@ components:
       properties:
         doctorId:
           type: integer
+        familyMemberId:
+          type: ["integer", "null"]
         appointmentDate:
           type: string
         appointmentTime:

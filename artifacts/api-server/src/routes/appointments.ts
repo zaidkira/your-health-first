@@ -1,17 +1,19 @@
 import { Router, type IRouter } from "express";
 import { eq, and, gte, desc } from "drizzle-orm";
-import { db, appointmentsTable, doctorsTable } from "@workspace/db";
+import { db, appointmentsTable, doctorsTable, familyMembersTable } from "@workspace/db";
 import { CreateAppointmentBody, UpdateAppointmentBody, UpdateAppointmentParams, DeleteAppointmentParams } from "@workspace/api-zod";
 import { requireAuth, getUserId } from "../lib/auth";
 
 const router: IRouter = Router();
+
+const fmt = (a: typeof appointmentsTable.$inferSelect) => ({ ...a, createdAt: a.createdAt.toISOString() });
 
 router.get("/appointments", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
   const appts = await db.select().from(appointmentsTable)
     .where(eq(appointmentsTable.userId, userId))
     .orderBy(desc(appointmentsTable.appointmentDate));
-  res.json(appts.map(a => ({ ...a, createdAt: a.createdAt.toISOString() })));
+  res.json(appts.map(fmt));
 });
 
 router.post("/appointments", requireAuth, async (req, res): Promise<void> => {
@@ -22,8 +24,16 @@ router.post("/appointments", requireAuth, async (req, res): Promise<void> => {
   const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.id, parsed.data.doctorId));
   if (!doctor) { res.status(404).json({ error: "Doctor not found" }); return; }
 
+  let familyMemberName: string | null = null;
+  if (parsed.data.familyMemberId) {
+    const [fm] = await db.select().from(familyMembersTable).where(eq(familyMembersTable.id, parsed.data.familyMemberId));
+    familyMemberName = fm?.name ?? null;
+  }
+
   const [appt] = await db.insert(appointmentsTable).values({
     userId,
+    familyMemberId: parsed.data.familyMemberId ?? null,
+    familyMemberName,
     doctorId: parsed.data.doctorId,
     doctorName: doctor.name,
     doctorSpecialty: doctor.specialty,
@@ -34,7 +44,7 @@ router.post("/appointments", requireAuth, async (req, res): Promise<void> => {
     status: "scheduled",
   }).returning();
 
-  res.status(201).json({ ...appt, createdAt: appt.createdAt.toISOString() });
+  res.status(201).json(fmt(appt));
 });
 
 router.get("/appointments/upcoming", requireAuth, async (req, res): Promise<void> => {
@@ -47,7 +57,7 @@ router.get("/appointments/upcoming", requireAuth, async (req, res): Promise<void
       gte(appointmentsTable.appointmentDate, today)
     )
   ).limit(3);
-  res.json(upcoming.map(a => ({ ...a, createdAt: a.createdAt.toISOString() })));
+  res.json(upcoming.map(fmt));
 });
 
 router.patch("/appointments/:id", requireAuth, async (req, res): Promise<void> => {
@@ -61,7 +71,7 @@ router.patch("/appointments/:id", requireAuth, async (req, res): Promise<void> =
     .where(and(eq(appointmentsTable.id, params.data.id), eq(appointmentsTable.userId, userId)))
     .returning();
   if (!appt) { res.status(404).json({ error: "Appointment not found" }); return; }
-  res.json({ ...appt, createdAt: appt.createdAt.toISOString() });
+  res.json(fmt(appt));
 });
 
 router.delete("/appointments/:id", requireAuth, async (req, res): Promise<void> => {

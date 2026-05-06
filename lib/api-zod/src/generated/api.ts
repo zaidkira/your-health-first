@@ -427,6 +427,8 @@ export const GetDoctorResponse = zod.object({
 export const ListAppointmentsResponseItem = zod.object({
   id: zod.number(),
   userId: zod.number(),
+  familyMemberId: zod.number().nullish(),
+  familyMemberName: zod.string().nullish(),
   doctorId: zod.number(),
   doctorName: zod.string(),
   doctorSpecialty: zod.string(),
@@ -444,6 +446,7 @@ export const ListAppointmentsResponse = zod.array(ListAppointmentsResponseItem);
  */
 export const CreateAppointmentBody = zod.object({
   doctorId: zod.number(),
+  familyMemberId: zod.number().nullish(),
   appointmentDate: zod.string(),
   appointmentTime: zod.string(),
   notes: zod.string().nullish(),
@@ -456,6 +459,8 @@ export const CreateAppointmentBody = zod.object({
 export const GetUpcomingAppointmentsResponseItem = zod.object({
   id: zod.number(),
   userId: zod.number(),
+  familyMemberId: zod.number().nullish(),
+  familyMemberName: zod.string().nullish(),
   doctorId: zod.number(),
   doctorName: zod.string(),
   doctorSpecialty: zod.string(),
@@ -487,6 +492,8 @@ export const UpdateAppointmentBody = zod.object({
 export const UpdateAppointmentResponse = zod.object({
   id: zod.number(),
   userId: zod.number(),
+  familyMemberId: zod.number().nullish(),
+  familyMemberName: zod.string().nullish(),
   doctorId: zod.number(),
   doctorName: zod.string(),
   doctorSpecialty: zod.string(),

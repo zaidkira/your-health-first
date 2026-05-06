@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useListDoctors, useCreateAppointment, getListAppointmentsQueryKey } from "@workspace/api-client-react";
+import { useListDoctors, useCreateAppointment, getListAppointmentsQueryKey, useListFamilyMembers } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Star, Phone, MapPin, Clock, Video, CalendarPlus, Search, Stethoscope, Wifi, TrendingUp, Users } from "lucide-react";
+import { Star, Phone, MapPin, Clock, Video, CalendarPlus, Search, Stethoscope, Wifi, TrendingUp, Users, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,21 +21,20 @@ export default function Doctors() {
   const [wilaya, setWilaya] = useState("");
   const [search, setSearch] = useState("");
   const [bookingDoctor, setBookingDoctor] = useState<null | { id: number; name: string; specialty: string }>(null);
-  const [booking, setBooking] = useState({ date: "", time: "09:00", isOnline: false, notes: "" });
+  const [booking, setBooking] = useState({ date: "", time: "09:00", isOnline: false, notes: "", familyMemberId: "" });
 
-  // Always fetch all doctors for stats
   const { data: allDoctors } = useListDoctors({}, { query: { queryKey: ["doctors-all"] as any } });
   const { data: doctors, isLoading } = useListDoctors(
     { specialty: specialty || undefined, wilaya: wilaya || undefined },
     { query: { queryKey: ["doctors", specialty, wilaya] as any } }
   );
+  const { data: familyMembers } = useListFamilyMembers();
   const createAppointment = useCreateAppointment();
 
   const filtered = (doctors ?? []).filter(d =>
     !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.specialty.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Stats computed from all doctors
   const all = allDoctors ?? [];
   const totalDoctors = all.length;
   const onlineCount = all.filter(d => d.isOnlineConsultation).length;
@@ -50,13 +49,23 @@ export default function Doctors() {
     e.preventDefault();
     if (!bookingDoctor) return;
     createAppointment.mutate(
-      { data: { doctorId: bookingDoctor.id, appointmentDate: booking.date, appointmentTime: booking.time, isOnline: booking.isOnline, notes: booking.notes || null } },
+      {
+        data: {
+          doctorId: bookingDoctor.id,
+          appointmentDate: booking.date,
+          appointmentTime: booking.time,
+          isOnline: booking.isOnline,
+          notes: booking.notes || null,
+          familyMemberId: booking.familyMemberId ? Number(booking.familyMemberId) : null,
+        }
+      },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAppointmentsQueryKey() });
           setBookingDoctor(null);
-          setBooking({ date: "", time: "09:00", isOnline: false, notes: "" });
-          toast({ title: "Appointment booked successfully" });
+          setBooking({ date: "", time: "09:00", isOnline: false, notes: "", familyMemberId: "" });
+          const memberName = (familyMembers ?? []).find(fm => String(fm.id) === booking.familyMemberId)?.name;
+          toast({ title: memberName ? `Appointment booked for ${memberName}` : "Appointment booked successfully" });
         },
         onError: () => toast({ title: "Failed to book appointment", variant: "destructive" }),
       }
@@ -67,10 +76,10 @@ export default function Doctors() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Find a Doctor</h1>
-        <p className="text-muted-foreground mt-1">Browse doctors and book appointments online.</p>
+        <p className="text-muted-foreground mt-1">Browse doctors and book appointments for you or a family member.</p>
       </div>
 
-      {/* Dashboard Stats */}
+      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-primary">
           <CardContent className="p-4 flex items-center gap-3">
@@ -83,7 +92,6 @@ export default function Doctors() {
             </div>
           </CardContent>
         </Card>
-
         <Card className="border-l-4 border-l-blue-400">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
@@ -95,7 +103,6 @@ export default function Doctors() {
             </div>
           </CardContent>
         </Card>
-
         <Card className="border-l-4 border-l-amber-400">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
@@ -107,7 +114,6 @@ export default function Doctors() {
             </div>
           </CardContent>
         </Card>
-
         <Card className="border-l-4 border-l-emerald-400">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
@@ -121,7 +127,7 @@ export default function Doctors() {
         </Card>
       </div>
 
-      {/* Specialty quick-filter chips */}
+      {/* Specialty chips */}
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Browse by Specialty</p>
         <div className="flex flex-wrap gap-2">
@@ -144,7 +150,7 @@ export default function Doctors() {
         </div>
       </div>
 
-      {/* Search & filter bar */}
+      {/* Search & filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -166,7 +172,6 @@ export default function Doctors() {
         </Select>
       </div>
 
-      {/* Results count */}
       {!isLoading && (
         <p className="text-sm text-muted-foreground">
           Showing <span className="font-semibold text-foreground">{filtered.length}</span> doctor{filtered.length !== 1 ? "s" : ""}
@@ -199,13 +204,11 @@ export default function Doctors() {
                     </div>
                   </div>
                 </div>
-
                 <div className="space-y-1.5 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{doctor.address}, {doctor.wilaya}</span></div>
                   <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /><span>{doctor.availableDays}</span></div>
                   {doctor.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 shrink-0" /><span>{doctor.phone}</span></div>}
                 </div>
-
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-lg font-bold text-primary">{doctor.consultationFee.toLocaleString()} DZD</span>
@@ -233,6 +236,7 @@ export default function Doctors() {
           </DialogHeader>
           {bookingDoctor && (
             <form onSubmit={handleBook} className="space-y-4 mt-2">
+              {/* Doctor summary */}
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
                   {bookingDoctor.name.charAt(0)}
@@ -242,25 +246,59 @@ export default function Doctors() {
                   <p className="text-xs text-muted-foreground">{bookingDoctor.specialty}</p>
                 </div>
               </div>
+
+              {/* Who is this for */}
               <div className="space-y-1">
-                <Label>Date</Label>
-                <Input type="date" min={new Date().toISOString().split("T")[0]} value={booking.date} onChange={e => setBooking(b => ({ ...b, date: e.target.value }))} required />
+                <Label>Who is this appointment for?</Label>
+                <Select value={booking.familyMemberId} onValueChange={v => setBooking(b => ({ ...b, familyMemberId: v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select person" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      <div className="flex items-center gap-2">
+                        <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
+                        Myself
+                      </div>
+                    </SelectItem>
+                    {(familyMembers ?? []).map(fm => (
+                      <SelectItem key={fm.id} value={String(fm.id)}>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                          {fm.name} ({fm.relationship})
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="space-y-1">
-                <Label>Time</Label>
-                <Input type="time" value={booking.time} onChange={e => setBooking(b => ({ ...b, time: e.target.value }))} required />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>Date</Label>
+                  <Input type="date" min={new Date().toISOString().split("T")[0]} value={booking.date} onChange={e => setBooking(b => ({ ...b, date: e.target.value }))} required />
+                </div>
+                <div className="space-y-1">
+                  <Label>Time</Label>
+                  <Input type="time" value={booking.time} onChange={e => setBooking(b => ({ ...b, time: e.target.value }))} required />
+                </div>
               </div>
+
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="isOnline" checked={booking.isOnline} onChange={e => setBooking(b => ({ ...b, isOnline: e.target.checked }))} className="h-4 w-4" />
+                <input type="checkbox" id="isOnline" checked={booking.isOnline} onChange={e => setBooking(b => ({ ...b, isOnline: e.target.checked }))} className="h-4 w-4 rounded" />
                 <Label htmlFor="isOnline">Online consultation</Label>
               </div>
+
               <div className="space-y-1">
                 <Label>Notes (optional)</Label>
-                <Input placeholder="Reason for visit..." value={booking.notes} onChange={e => setBooking(b => ({ ...b, notes: e.target.value }))} />
+                <Input placeholder="Reason for visit, symptoms..." value={booking.notes} onChange={e => setBooking(b => ({ ...b, notes: e.target.value }))} />
               </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setBookingDoctor(null)}>Cancel</Button>
-                <Button type="submit" disabled={createAppointment.isPending}>{createAppointment.isPending ? "Booking..." : "Confirm Booking"}</Button>
+                <Button type="submit" disabled={createAppointment.isPending}>
+                  {createAppointment.isPending ? "Booking..." : "Confirm Booking"}
+                </Button>
               </div>
             </form>
           )}

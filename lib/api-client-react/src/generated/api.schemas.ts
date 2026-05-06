@@ -237,6 +237,10 @@ export interface Doctor {
 export interface Appointment {
   id: number;
   userId: number;
+  /** @nullable */
+  familyMemberId?: number | null;
+  /** @nullable */
+  familyMemberName?: string | null;
   doctorId: number;
   doctorName: string;
   doctorSpecialty: string;
@@ -251,6 +255,8 @@ export interface Appointment {
 
 export interface CreateAppointmentBody {
   doctorId: number;
+  /** @nullable */
+  familyMemberId?: number | null;
   appointmentDate: string;
   appointmentTime: string;
   /** @nullable */
