@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and, gte, count } from "drizzle-orm";
-import { db, medicationsTable, medicalRecordsTable, appointmentsTable, familyMembersTable, medicationRemindersTable } from "@workspace/db";
+import { db, medicationsTable, medicalRecordsTable, appointmentsTable, familyMembersTable, medicationRemindersTable, usersTable, doctorsTable } from "@workspace/db";
 import { requireAuth, getUserId } from "../lib/auth";
 
 const router: IRouter = Router();
@@ -21,12 +21,22 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
 
   const takenToday = todayReminders.filter(r => r.taken).length;
 
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  let upcomingApptsCondition = eq(appointmentsTable.userId, userId);
+  
+  if (user.role === "doctor") {
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    if (doctor) {
+      upcomingApptsCondition = eq(appointmentsTable.doctorId, doctor.id);
+    }
+  }
+
   const [upcomingCount] = await db
     .select({ count: count() })
     .from(appointmentsTable)
     .where(
       and(
-        eq(appointmentsTable.userId, userId),
+        upcomingApptsCondition,
         eq(appointmentsTable.status, "scheduled"),
         gte(appointmentsTable.appointmentDate, today)
       )

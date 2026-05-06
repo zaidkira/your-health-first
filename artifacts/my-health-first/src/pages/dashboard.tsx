@@ -3,8 +3,13 @@ import { Pill, Calendar, Activity, Users, Clock, AlertCircle } from "lucide-reac
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { format, parseISO } from "date-fns";
+import { useAuth } from "@/lib/auth";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const isDoctor = user?.role === "doctor";
+  const isPharmacy = user?.role === "pharmacy";
+  const isPatient = !isDoctor && !isPharmacy;
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
   const { data: todaysMeds, isLoading: loadingMeds } = useGetTodaysMedications();
   const { data: appointments, isLoading: loadingAppointments } = useGetUpcomingAppointments();
@@ -24,54 +29,63 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Medication Adherence</CardTitle>
-            <Pill className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.medicationsTakenToday || 0}/{summary?.medicationsToday || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Doses taken today</p>
-            <Progress value={progressPercent} className="mt-3" />
-          </CardContent>
-        </Card>
+        {!isDoctor && !isPharmacy && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Medication Adherence</CardTitle>
+              <Pill className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary?.medicationsTakenToday || 0}/{summary?.medicationsToday || 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">Doses taken today</p>
+              <Progress value={progressPercent} className="mt-3" />
+            </CardContent>
+          </Card>
+        )}
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Appointments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.upcomingAppointments || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Upcoming scheduled</p>
-          </CardContent>
-        </Card>
+        {!isPharmacy && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Appointments</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary?.upcomingAppointments || 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">{isDoctor ? "Patients scheduled" : "Upcoming scheduled"}</p>
+            </CardContent>
+          </Card>
+        )}
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Active Medications</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.activeMedications || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Current prescriptions</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Family Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.familyMembers || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Profiles managed</p>
-          </CardContent>
-        </Card>
+        {!isDoctor && !isPharmacy && (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-sm font-medium">Active Medications</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{summary?.activeMedications || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Current prescriptions</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-sm font-medium">Family Members</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{summary?.familyMembers || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Profiles managed</p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        {!isDoctor && !isPharmacy && (
+          <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
@@ -112,8 +126,10 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        )}
 
-        <Card>
+        {!isPharmacy && (
+          <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -153,6 +169,7 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   );

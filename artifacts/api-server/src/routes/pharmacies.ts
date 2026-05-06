@@ -1,7 +1,10 @@
 import { Router, type IRouter } from "express";
 import { ilike, and } from "drizzle-orm";
-import { db, pharmaciesTable } from "@workspace/db";
+import { db, pharmaciesTable, usersTable } from "@workspace/db";
 import { ListPharmaciesQueryParams } from "@workspace/api-zod";
+import { requireAuth, getUserId } from "../lib/auth";
+import * as zod from "zod";
+import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -31,6 +34,37 @@ router.get("/pharmacies", async (req, res): Promise<void> => {
   }));
 
   res.json(result);
+});
+
+const UpdateMedicinesBody = zod.array(
+  zod.object({
+    name: zod.string(),
+    available: zod.boolean(),
+    price: zod.number().nullish(),
+  })
+);
+
+router.put("/pharmacies/medicines", requireAuth, async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  const parsed = UpdateMedicinesBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user || user.role !== "pharmacy") {
+    res.status(403).json({ error: "Only pharmacies can update medicines" }); return;
+  }
+
+  const [pharmacy] = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+  if (!pharmacy) {
+    res.status(404).json({ error: "Pharmacy profile not found" }); return;
+  }
+
+  const updated = await db.update(pharmaciesTable)
+    .set({ medicinesJson: JSON.stringify(parsed.data) })
+    .where(eq(pharmaciesTable.id, pharmacy.id))
+    .returning();
+
+  res.json({ success: true, medicines: JSON.parse(updated[0].medicinesJson ?? "[]") });
 });
 
 export default router;

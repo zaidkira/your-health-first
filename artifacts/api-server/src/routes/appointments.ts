@@ -3,6 +3,7 @@ import { eq, and, gte, desc } from "drizzle-orm";
 import { db, appointmentsTable, doctorsTable, familyMembersTable } from "@workspace/db";
 import { CreateAppointmentBody, UpdateAppointmentBody, UpdateAppointmentParams, DeleteAppointmentParams } from "@workspace/api-zod";
 import { requireAuth, getUserId } from "../lib/auth";
+import { usersTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -10,6 +11,19 @@ const fmt = (a: typeof appointmentsTable.$inferSelect) => ({ ...a, createdAt: a.
 
 router.get("/appointments", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  
+  if (user.role === "doctor") {
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    if (doctor) {
+      const appts = await db.select().from(appointmentsTable)
+        .where(eq(appointmentsTable.doctorId, doctor.id))
+        .orderBy(desc(appointmentsTable.appointmentDate));
+      res.json(appts.map(fmt));
+      return;
+    }
+  }
+
   const appts = await db.select().from(appointmentsTable)
     .where(eq(appointmentsTable.userId, userId))
     .orderBy(desc(appointmentsTable.appointmentDate));
@@ -50,13 +64,30 @@ router.post("/appointments", requireAuth, async (req, res): Promise<void> => {
 router.get("/appointments/upcoming", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
   const today = new Date().toISOString().split("T")[0];
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+
+  if (user.role === "doctor") {
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    if (doctor) {
+      const upcoming = await db.select().from(appointmentsTable).where(
+        and(
+          eq(appointmentsTable.doctorId, doctor.id),
+          eq(appointmentsTable.status, "scheduled"),
+          gte(appointmentsTable.appointmentDate, today)
+        )
+      ).orderBy(desc(appointmentsTable.appointmentDate)).limit(3);
+      res.json(upcoming.map(fmt));
+      return;
+    }
+  }
+
   const upcoming = await db.select().from(appointmentsTable).where(
     and(
       eq(appointmentsTable.userId, userId),
       eq(appointmentsTable.status, "scheduled"),
       gte(appointmentsTable.appointmentDate, today)
     )
-  ).limit(3);
+  ).orderBy(desc(appointmentsTable.appointmentDate)).limit(3);
   res.json(upcoming.map(fmt));
 });
 
@@ -67,10 +98,27 @@ router.patch("/appointments/:id", requireAuth, async (req, res): Promise<void> =
   const body = UpdateAppointmentBody.safeParse(req.body);
   if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
 
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const [appointment] = await db.select().from(appointmentsTable).where(eq(appointmentsTable.id, params.data.id));
+
+  if (!appointment) { res.status(404).json({ error: "Appointment not found" }); return; }
+
+  let authorized = false;
+  if (appointment.userId === userId) {
+    authorized = true;
+  } else if (user.role === "doctor") {
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    if (doctor && appointment.doctorId === doctor.id) {
+      authorized = true;
+    }
+  }
+
+  if (!authorized) { res.status(403).json({ error: "Not authorized" }); return; }
+
   const [appt] = await db.update(appointmentsTable).set(body.data)
-    .where(and(eq(appointmentsTable.id, params.data.id), eq(appointmentsTable.userId, userId)))
+    .where(eq(appointmentsTable.id, params.data.id))
     .returning();
-  if (!appt) { res.status(404).json({ error: "Appointment not found" }); return; }
+  
   res.json(fmt(appt));
 });
 
