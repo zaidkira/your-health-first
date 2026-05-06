@@ -39,8 +39,12 @@ app.use("/api", router);
 // Serve static files in production
 const publicDir = path.resolve(__dirname, "../../my-health-first/dist/public");
 app.use(express.static(publicDir));
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(publicDir, "index.html"));
+app.use((req, res, next) => {
+  if (req.method === "GET") {
+    res.sendFile(path.resolve(publicDir, "index.html"));
+  } else {
+    next();
+  }
 });
 
 export default app;
