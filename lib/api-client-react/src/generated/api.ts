@@ -17,6 +17,8 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdminUpdateUserBody,
+  AdminUser,
   Appointment,
   AuthResponse,
   CreateAppointmentBody,
@@ -2518,4 +2520,166 @@ export const useDeleteFamilyMember = <
   TContext
 > => {
   return useMutation(getDeleteFamilyMemberMutationOptions(options));
+};
+
+/**
+ * @summary List all users (admin only)
+ */
+export const getAdminListUsersUrl = () => {
+  return `/api/admin/users`;
+};
+
+export const adminListUsers = async (
+  options?: RequestInit,
+): Promise<AdminUser[]> => {
+  return customFetch<AdminUser[]>(getAdminListUsersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListUsersQueryKey = () => {
+  return [`/api/admin/users`] as const;
+};
+
+export const getAdminListUsersQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListUsers>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminListUsers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListUsersQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListUsers>>> = ({
+    signal,
+  }) => adminListUsers({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminListUsers>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminListUsersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListUsers>>
+>;
+export type AdminListUsersQueryError = ErrorType<void>;
+
+/**
+ * @summary List all users (admin only)
+ */
+
+export function useAdminListUsers<
+  TData = Awaited<ReturnType<typeof adminListUsers>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminListUsers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminListUsersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update any user's profile (admin only)
+ */
+export const getAdminUpdateUserUrl = (id: number) => {
+  return `/api/admin/users/${id}`;
+};
+
+export const adminUpdateUser = async (
+  id: number,
+  adminUpdateUserBody: AdminUpdateUserBody,
+  options?: RequestInit,
+): Promise<AdminUser> => {
+  return customFetch<AdminUser>(getAdminUpdateUserUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminUpdateUserBody),
+  });
+};
+
+export const getAdminUpdateUserMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateUser>>,
+    TError,
+    { id: number; data: BodyType<AdminUpdateUserBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateUser>>,
+  TError,
+  { id: number; data: BodyType<AdminUpdateUserBody> },
+  TContext
+> => {
+  const mutationKey = ["adminUpdateUser"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateUser>>,
+    { id: number; data: BodyType<AdminUpdateUserBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminUpdateUser(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminUpdateUserMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateUser>>
+>;
+export type AdminUpdateUserMutationBody = BodyType<AdminUpdateUserBody>;
+export type AdminUpdateUserMutationError = ErrorType<void>;
+
+/**
+ * @summary Update any user's profile (admin only)
+ */
+export const useAdminUpdateUser = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateUser>>,
+    TError,
+    { id: number; data: BodyType<AdminUpdateUserBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateUser>>,
+  TError,
+  { id: number; data: BodyType<AdminUpdateUserBody> },
+  TContext
+> => {
+  return useMutation(getAdminUpdateUserMutationOptions(options));
 };

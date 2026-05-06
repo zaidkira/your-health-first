@@ -26,6 +26,8 @@ tags:
     description: Pharmacy and medicine search
   - name: family
     description: Family member management
+  - name: admin
+    description: Admin user management
 paths:
   /healthz:
     get:
@@ -566,6 +568,58 @@ paths:
         "204":
           description: Deleted
 
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users (admin only)
+      responses:
+        "200":
+          description: List of all users with profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /admin/users/{id}:
+    put:
+      operationId: adminUpdateUser
+      tags: [admin]
+      summary: Update any user's profile (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserBody"
+      responses:
+        "200":
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -667,7 +721,7 @@ components:
           type: ["string", "null"]
         role:
           type: string
-          enum: [patient, doctor, pharmacy]
+          enum: [patient, doctor, pharmacy, admin]
         createdAt:
           type: string
         doctorProfile:
@@ -718,7 +772,7 @@ components:
           type: ["string", "null"]
         role:
           type: string
-          enum: [patient, doctor, pharmacy]
+          enum: [patient, doctor, pharmacy, admin]
         createdAt:
           type: string
       required:
@@ -1070,6 +1124,52 @@ components:
       required:
         - name
         - available
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        wilaya:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [patient, doctor, pharmacy, admin]
+        createdAt:
+          type: string
+        doctorProfile:
+          $ref: "#/components/schemas/DoctorProfile"
+        pharmacyProfile:
+          $ref: "#/components/schemas/PharmacyProfile"
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
+
+    AdminUpdateUserBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        wilaya:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [patient, doctor, pharmacy, admin]
+        doctorProfile:
+          $ref: "#/components/schemas/DoctorProfile"
+        pharmacyProfile:
+          $ref: "#/components/schemas/PharmacyProfile"
 
     FamilyMember:
       type: object

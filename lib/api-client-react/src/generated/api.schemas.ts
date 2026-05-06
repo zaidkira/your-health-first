@@ -64,6 +64,7 @@ export const ProfileResponseRole = {
   patient: "patient",
   doctor: "doctor",
   pharmacy: "pharmacy",
+  admin: "admin",
 } as const;
 
 export interface ProfileResponse {
@@ -91,6 +92,7 @@ export const UserRole = {
   patient: "patient",
   doctor: "doctor",
   pharmacy: "pharmacy",
+  admin: "admin",
 } as const;
 
 export interface User {
@@ -279,6 +281,50 @@ export interface Pharmacy {
   lat?: number | null;
   /** @nullable */
   lng?: number | null;
+}
+
+export type AdminUserRole = (typeof AdminUserRole)[keyof typeof AdminUserRole];
+
+export const AdminUserRole = {
+  patient: "patient",
+  doctor: "doctor",
+  pharmacy: "pharmacy",
+  admin: "admin",
+} as const;
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  wilaya?: string | null;
+  role: AdminUserRole;
+  createdAt: string;
+  doctorProfile?: DoctorProfile;
+  pharmacyProfile?: PharmacyProfile;
+}
+
+export type AdminUpdateUserBodyRole =
+  (typeof AdminUpdateUserBodyRole)[keyof typeof AdminUpdateUserBodyRole];
+
+export const AdminUpdateUserBodyRole = {
+  patient: "patient",
+  doctor: "doctor",
+  pharmacy: "pharmacy",
+  admin: "admin",
+} as const;
+
+export interface AdminUpdateUserBody {
+  name?: string;
+  /** @nullable */
+  phone?: string | null;
+  /** @nullable */
+  wilaya?: string | null;
+  role?: AdminUpdateUserBodyRole;
+  doctorProfile?: DoctorProfile;
+  pharmacyProfile?: PharmacyProfile;
 }
 
 export interface FamilyMember {

@@ -65,7 +65,7 @@ export const LoginResponse = zod.object({
     email: zod.string(),
     phone: zod.string().nullish(),
     wilaya: zod.string().nullish(),
-    role: zod.enum(["patient", "doctor", "pharmacy"]),
+    role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
     createdAt: zod.string(),
   }),
 });
@@ -79,7 +79,7 @@ export const GetMeResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
-  role: zod.enum(["patient", "doctor", "pharmacy"]),
+  role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
 });
 
@@ -92,7 +92,7 @@ export const GetProfileResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
-  role: zod.enum(["patient", "doctor", "pharmacy"]),
+  role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
   doctorProfile: zod
     .object({
@@ -147,7 +147,7 @@ export const UpdateProfileResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
-  role: zod.enum(["patient", "doctor", "pharmacy"]),
+  role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
   doctorProfile: zod
     .object({
@@ -587,4 +587,96 @@ export const UpdateFamilyMemberResponse = zod.object({
  */
 export const DeleteFamilyMemberParams = zod.object({
   id: zod.coerce.number(),
+});
+
+/**
+ * @summary List all users (admin only)
+ */
+export const AdminListUsersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  phone: zod.string().nullish(),
+  wilaya: zod.string().nullish(),
+  role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
+  createdAt: zod.string(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+    })
+    .optional(),
+});
+export const AdminListUsersResponse = zod.array(AdminListUsersResponseItem);
+
+/**
+ * @summary Update any user's profile (admin only)
+ */
+export const AdminUpdateUserParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminUpdateUserBody = zod.object({
+  name: zod.string().optional(),
+  phone: zod.string().nullish(),
+  wilaya: zod.string().nullish(),
+  role: zod.enum(["patient", "doctor", "pharmacy", "admin"]).optional(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+    })
+    .optional(),
+});
+
+export const AdminUpdateUserResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  phone: zod.string().nullish(),
+  wilaya: zod.string().nullish(),
+  role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
+  createdAt: zod.string(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+    })
+    .optional(),
 });

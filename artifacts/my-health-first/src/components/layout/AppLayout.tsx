@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 
-const navItems = [
+const BASE_NAV_ITEMS = [
   { name: "Dashboard",       href: "/dashboard",    icon: LayoutDashboard },
   { name: "Medications",     href: "/medications",  icon: Pill            },
   { name: "Medical Records", href: "/records",      icon: FileText        },
@@ -30,10 +31,16 @@ const navItems = [
   { name: "Family",          href: "/family",       icon: Users           },
 ];
 
+const ADMIN_NAV_ITEM = { name: "All Users", href: "/admin/users", icon: ShieldCheck };
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = user?.role === "admin"
+    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
+    : BASE_NAV_ITEMS;
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="space-y-1">

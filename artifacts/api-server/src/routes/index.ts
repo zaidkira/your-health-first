@@ -8,6 +8,7 @@ import doctorsRouter from "./doctors";
 import appointmentsRouter from "./appointments";
 import pharmaciesRouter from "./pharmacies";
 import familyRouter from "./family";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(doctorsRouter);
 router.use(appointmentsRouter);
 router.use(pharmaciesRouter);
 router.use(familyRouter);
+router.use(adminRouter);
 
 export default router;
