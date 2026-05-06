@@ -21,7 +21,9 @@ import type {
   AdminUser,
   Appointment,
   AuthResponse,
+  ChronicCondition,
   CreateAppointmentBody,
+  CreateConditionBody,
   CreateFamilyMemberBody,
   CreateMedicationBody,
   CreateRecordBody,
@@ -38,7 +40,10 @@ import type {
   Pharmacy,
   ProfileResponse,
   RegisterBody,
+  ShareRecordBody,
+  SharedRecord,
   UpdateAppointmentBody,
+  UpdateConditionBody,
   UpdateFamilyMemberBody,
   UpdateMedicationBody,
   UpdateProfileBody,
@@ -2520,6 +2525,575 @@ export const useDeleteFamilyMember = <
   TContext
 > => {
   return useMutation(getDeleteFamilyMemberMutationOptions(options));
+};
+
+/**
+ * @summary Share a medical record with a doctor
+ */
+export const getShareRecordUrl = (id: number) => {
+  return `/api/records/${id}/share`;
+};
+
+export const shareRecord = async (
+  id: number,
+  shareRecordBody: ShareRecordBody,
+  options?: RequestInit,
+): Promise<SharedRecord> => {
+  return customFetch<SharedRecord>(getShareRecordUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(shareRecordBody),
+  });
+};
+
+export const getShareRecordMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof shareRecord>>,
+    TError,
+    { id: number; data: BodyType<ShareRecordBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof shareRecord>>,
+  TError,
+  { id: number; data: BodyType<ShareRecordBody> },
+  TContext
+> => {
+  const mutationKey = ["shareRecord"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof shareRecord>>,
+    { id: number; data: BodyType<ShareRecordBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return shareRecord(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ShareRecordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof shareRecord>>
+>;
+export type ShareRecordMutationBody = BodyType<ShareRecordBody>;
+export type ShareRecordMutationError = ErrorType<void>;
+
+/**
+ * @summary Share a medical record with a doctor
+ */
+export const useShareRecord = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof shareRecord>>,
+    TError,
+    { id: number; data: BodyType<ShareRecordBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof shareRecord>>,
+  TError,
+  { id: number; data: BodyType<ShareRecordBody> },
+  TContext
+> => {
+  return useMutation(getShareRecordMutationOptions(options));
+};
+
+/**
+ * @summary List records I have shared with doctors
+ */
+export const getListSentRecordsUrl = () => {
+  return `/api/records/sent`;
+};
+
+export const listSentRecords = async (
+  options?: RequestInit,
+): Promise<SharedRecord[]> => {
+  return customFetch<SharedRecord[]>(getListSentRecordsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListSentRecordsQueryKey = () => {
+  return [`/api/records/sent`] as const;
+};
+
+export const getListSentRecordsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listSentRecords>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listSentRecords>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListSentRecordsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listSentRecords>>> = ({
+    signal,
+  }) => listSentRecords({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listSentRecords>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListSentRecordsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listSentRecords>>
+>;
+export type ListSentRecordsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List records I have shared with doctors
+ */
+
+export function useListSentRecords<
+  TData = Awaited<ReturnType<typeof listSentRecords>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listSentRecords>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListSentRecordsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List records shared with me (doctor view)
+ */
+export const getListReceivedRecordsUrl = () => {
+  return `/api/records/received`;
+};
+
+export const listReceivedRecords = async (
+  options?: RequestInit,
+): Promise<SharedRecord[]> => {
+  return customFetch<SharedRecord[]>(getListReceivedRecordsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListReceivedRecordsQueryKey = () => {
+  return [`/api/records/received`] as const;
+};
+
+export const getListReceivedRecordsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listReceivedRecords>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listReceivedRecords>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListReceivedRecordsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listReceivedRecords>>
+  > = ({ signal }) => listReceivedRecords({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listReceivedRecords>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListReceivedRecordsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listReceivedRecords>>
+>;
+export type ListReceivedRecordsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List records shared with me (doctor view)
+ */
+
+export function useListReceivedRecords<
+  TData = Awaited<ReturnType<typeof listReceivedRecords>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listReceivedRecords>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListReceivedRecordsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List chronic conditions
+ */
+export const getListConditionsUrl = () => {
+  return `/api/conditions`;
+};
+
+export const listConditions = async (
+  options?: RequestInit,
+): Promise<ChronicCondition[]> => {
+  return customFetch<ChronicCondition[]>(getListConditionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListConditionsQueryKey = () => {
+  return [`/api/conditions`] as const;
+};
+
+export const getListConditionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listConditions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listConditions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListConditionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listConditions>>> = ({
+    signal,
+  }) => listConditions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listConditions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListConditionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listConditions>>
+>;
+export type ListConditionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List chronic conditions
+ */
+
+export function useListConditions<
+  TData = Awaited<ReturnType<typeof listConditions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listConditions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListConditionsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a chronic condition
+ */
+export const getCreateConditionUrl = () => {
+  return `/api/conditions`;
+};
+
+export const createCondition = async (
+  createConditionBody: CreateConditionBody,
+  options?: RequestInit,
+): Promise<ChronicCondition> => {
+  return customFetch<ChronicCondition>(getCreateConditionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createConditionBody),
+  });
+};
+
+export const getCreateConditionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCondition>>,
+    TError,
+    { data: BodyType<CreateConditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCondition>>,
+  TError,
+  { data: BodyType<CreateConditionBody> },
+  TContext
+> => {
+  const mutationKey = ["createCondition"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCondition>>,
+    { data: BodyType<CreateConditionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCondition(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateConditionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCondition>>
+>;
+export type CreateConditionMutationBody = BodyType<CreateConditionBody>;
+export type CreateConditionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a chronic condition
+ */
+export const useCreateCondition = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCondition>>,
+    TError,
+    { data: BodyType<CreateConditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCondition>>,
+  TError,
+  { data: BodyType<CreateConditionBody> },
+  TContext
+> => {
+  return useMutation(getCreateConditionMutationOptions(options));
+};
+
+/**
+ * @summary Update a chronic condition
+ */
+export const getUpdateConditionUrl = (id: number) => {
+  return `/api/conditions/${id}`;
+};
+
+export const updateCondition = async (
+  id: number,
+  updateConditionBody: UpdateConditionBody,
+  options?: RequestInit,
+): Promise<ChronicCondition> => {
+  return customFetch<ChronicCondition>(getUpdateConditionUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateConditionBody),
+  });
+};
+
+export const getUpdateConditionMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCondition>>,
+    TError,
+    { id: number; data: BodyType<UpdateConditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCondition>>,
+  TError,
+  { id: number; data: BodyType<UpdateConditionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateCondition"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCondition>>,
+    { id: number; data: BodyType<UpdateConditionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateCondition(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateConditionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCondition>>
+>;
+export type UpdateConditionMutationBody = BodyType<UpdateConditionBody>;
+export type UpdateConditionMutationError = ErrorType<void>;
+
+/**
+ * @summary Update a chronic condition
+ */
+export const useUpdateCondition = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCondition>>,
+    TError,
+    { id: number; data: BodyType<UpdateConditionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCondition>>,
+  TError,
+  { id: number; data: BodyType<UpdateConditionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateConditionMutationOptions(options));
+};
+
+/**
+ * @summary Delete a chronic condition
+ */
+export const getDeleteConditionUrl = (id: number) => {
+  return `/api/conditions/${id}`;
+};
+
+export const deleteCondition = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteConditionUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteConditionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCondition>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCondition>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteCondition"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCondition>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteCondition(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteConditionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCondition>>
+>;
+
+export type DeleteConditionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a chronic condition
+ */
+export const useDeleteCondition = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCondition>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCondition>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteConditionMutationOptions(options));
 };
 
 /**

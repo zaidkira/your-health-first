@@ -541,6 +541,7 @@ export const ListFamilyMembersResponseItem = zod.object({
   userId: zod.number(),
   name: zod.string(),
   relationship: zod.string(),
+  groupName: zod.string().nullish(),
   dateOfBirth: zod.string().nullish(),
   bloodType: zod.string().nullish(),
   notes: zod.string().nullish(),
@@ -556,6 +557,7 @@ export const ListFamilyMembersResponse = zod.array(
 export const CreateFamilyMemberBody = zod.object({
   name: zod.string(),
   relationship: zod.string(),
+  groupName: zod.string().nullish(),
   dateOfBirth: zod.string().nullish(),
   bloodType: zod.string().nullish(),
   notes: zod.string().nullish(),
@@ -571,6 +573,7 @@ export const UpdateFamilyMemberParams = zod.object({
 export const UpdateFamilyMemberBody = zod.object({
   name: zod.string().optional(),
   relationship: zod.string().optional(),
+  groupName: zod.string().nullish(),
   dateOfBirth: zod.string().nullish(),
   bloodType: zod.string().nullish(),
   notes: zod.string().nullish(),
@@ -581,6 +584,7 @@ export const UpdateFamilyMemberResponse = zod.object({
   userId: zod.number(),
   name: zod.string(),
   relationship: zod.string(),
+  groupName: zod.string().nullish(),
   dateOfBirth: zod.string().nullish(),
   bloodType: zod.string().nullish(),
   notes: zod.string().nullish(),
@@ -591,6 +595,133 @@ export const UpdateFamilyMemberResponse = zod.object({
  * @summary Remove a family member
  */
 export const DeleteFamilyMemberParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Share a medical record with a doctor
+ */
+export const ShareRecordParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ShareRecordBody = zod.object({
+  doctorId: zod.number(),
+  message: zod.string().nullish(),
+});
+
+/**
+ * @summary List records I have shared with doctors
+ */
+export const ListSentRecordsResponseItem = zod.object({
+  id: zod.number(),
+  recordId: zod.number(),
+  senderId: zod.number(),
+  doctorId: zod.number(),
+  message: zod.string().nullish(),
+  sentAt: zod.string(),
+  record: zod
+    .object({
+      id: zod.number(),
+      userId: zod.number(),
+      familyMemberId: zod.number().nullish(),
+      title: zod.string(),
+      category: zod.string(),
+      description: zod.string().nullish(),
+      fileUrl: zod.string().nullish(),
+      fileName: zod.string().nullish(),
+      recordDate: zod.string(),
+      createdAt: zod.string(),
+    })
+    .optional(),
+  doctorName: zod.string().nullish(),
+  senderName: zod.string().nullish(),
+});
+export const ListSentRecordsResponse = zod.array(ListSentRecordsResponseItem);
+
+/**
+ * @summary List records shared with me (doctor view)
+ */
+export const ListReceivedRecordsResponseItem = zod.object({
+  id: zod.number(),
+  recordId: zod.number(),
+  senderId: zod.number(),
+  doctorId: zod.number(),
+  message: zod.string().nullish(),
+  sentAt: zod.string(),
+  record: zod
+    .object({
+      id: zod.number(),
+      userId: zod.number(),
+      familyMemberId: zod.number().nullish(),
+      title: zod.string(),
+      category: zod.string(),
+      description: zod.string().nullish(),
+      fileUrl: zod.string().nullish(),
+      fileName: zod.string().nullish(),
+      recordDate: zod.string(),
+      createdAt: zod.string(),
+    })
+    .optional(),
+  doctorName: zod.string().nullish(),
+  senderName: zod.string().nullish(),
+});
+export const ListReceivedRecordsResponse = zod.array(
+  ListReceivedRecordsResponseItem,
+);
+
+/**
+ * @summary List chronic conditions
+ */
+export const ListConditionsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  name: zod.string(),
+  diagnosedYear: zod.string().nullish(),
+  severity: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const ListConditionsResponse = zod.array(ListConditionsResponseItem);
+
+/**
+ * @summary Add a chronic condition
+ */
+export const CreateConditionBody = zod.object({
+  name: zod.string(),
+  diagnosedYear: zod.string().nullish(),
+  severity: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+/**
+ * @summary Update a chronic condition
+ */
+export const UpdateConditionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateConditionBody = zod.object({
+  name: zod.string().optional(),
+  diagnosedYear: zod.string().nullish(),
+  severity: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateConditionResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  name: zod.string(),
+  diagnosedYear: zod.string().nullish(),
+  severity: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a chronic condition
+ */
+export const DeleteConditionParams = zod.object({
   id: zod.coerce.number(),
 });
 

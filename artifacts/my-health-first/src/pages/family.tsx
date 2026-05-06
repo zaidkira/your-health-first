@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { useListFamilyMembers, useCreateFamilyMember, useUpdateFamilyMember, useDeleteFamilyMember, getListFamilyMembersQueryKey } from "@workspace/api-client-react";
+import {
+  useListFamilyMembers, useCreateFamilyMember, useUpdateFamilyMember,
+  useDeleteFamilyMember, getListFamilyMembersQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Users, Plus, Pencil, Trash2, Heart } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Heart, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 const RELATIONSHIPS = ["Spouse", "Parent", "Child", "Sibling", "Grandparent", "Grandchild", "Other"];
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-const emptyForm = { name: "", relationship: "Spouse", dateOfBirth: "", bloodType: "", notes: "" };
+const emptyForm = { name: "", relationship: "Spouse", groupName: "", dateOfBirth: "", bloodType: "", notes: "" };
 
 export default function Family() {
   const queryClient = useQueryClient();
@@ -28,6 +31,7 @@ export default function Family() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<null | number>(null);
   const [form, setForm] = useState(emptyForm);
+  const [groupFilter, setGroupFilter] = useState<string>("all");
 
   function openAdd() {
     setEditing(null);
@@ -35,15 +39,32 @@ export default function Family() {
     setOpen(true);
   }
 
-  function openEdit(member: { id: number; name: string; relationship: string; dateOfBirth?: string | null; bloodType?: string | null; notes?: string | null }) {
+  function openEdit(member: {
+    id: number; name: string; relationship: string; groupName?: string | null;
+    dateOfBirth?: string | null; bloodType?: string | null; notes?: string | null;
+  }) {
     setEditing(member.id);
-    setForm({ name: member.name, relationship: member.relationship, dateOfBirth: member.dateOfBirth ?? "", bloodType: member.bloodType ?? "", notes: member.notes ?? "" });
+    setForm({
+      name: member.name,
+      relationship: member.relationship,
+      groupName: member.groupName ?? "",
+      dateOfBirth: member.dateOfBirth ?? "",
+      bloodType: member.bloodType ?? "",
+      notes: member.notes ?? "",
+    });
     setOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const data = { ...form, dateOfBirth: form.dateOfBirth || null, bloodType: form.bloodType || null, notes: form.notes || null };
+    const data = {
+      name: form.name,
+      relationship: form.relationship,
+      groupName: form.groupName || null,
+      dateOfBirth: form.dateOfBirth || null,
+      bloodType: form.bloodType || null,
+      notes: form.notes || null,
+    };
 
     if (editing !== null) {
       updateMember.mutate(
@@ -59,7 +80,7 @@ export default function Family() {
       );
     } else {
       createMember.mutate(
-        { data: { name: form.name, relationship: form.relationship, dateOfBirth: data.dateOfBirth, bloodType: data.bloodType, notes: data.notes } },
+        { data },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListFamilyMembersQueryKey() });
@@ -87,6 +108,13 @@ export default function Family() {
 
   const isPending = createMember.isPending || updateMember.isPending;
 
+  const allGroups = Array.from(new Set((members ?? []).map(m => m.groupName).filter(Boolean))) as string[];
+  const filteredMembers = groupFilter === "all"
+    ? (members ?? [])
+    : groupFilter === "none"
+      ? (members ?? []).filter(m => !m.groupName)
+      : (members ?? []).filter(m => m.groupName === groupFilter);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -105,12 +133,26 @@ export default function Family() {
                 <Label>Name</Label>
                 <Input placeholder="Full name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
               </div>
-              <div className="space-y-1">
-                <Label>Relationship</Label>
-                <Select value={form.relationship} onValueChange={v => setForm(f => ({ ...f, relationship: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{RELATIONSHIPS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>Relationship</Label>
+                  <Select value={form.relationship} onValueChange={v => setForm(f => ({ ...f, relationship: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{RELATIONSHIPS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Group (optional)</Label>
+                  <Input
+                    placeholder="e.g. Immediate, Extended"
+                    value={form.groupName}
+                    onChange={e => setForm(f => ({ ...f, groupName: e.target.value }))}
+                    list="existing-groups"
+                  />
+                  <datalist id="existing-groups">
+                    {allGroups.map(g => <option key={g} value={g} />)}
+                  </datalist>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -138,9 +180,20 @@ export default function Family() {
         </Dialog>
       </div>
 
+      {/* Group filter chips */}
+      {allGroups.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" variant={groupFilter === "all" ? "default" : "outline"} onClick={() => setGroupFilter("all")}>All</Button>
+          {allGroups.map(g => (
+            <Button key={g} size="sm" variant={groupFilter === g ? "default" : "outline"} onClick={() => setGroupFilter(g)}>{g}</Button>
+          ))}
+          <Button size="sm" variant={groupFilter === "none" ? "default" : "outline"} onClick={() => setGroupFilter("none")}>No Group</Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Loading...</div>
-      ) : (members ?? []).length === 0 ? (
+      ) : filteredMembers.length === 0 ? (
         <div className="text-center py-16 flex flex-col items-center text-muted-foreground">
           <Users className="h-12 w-12 mb-3 opacity-20" />
           <p className="font-medium">No family members yet</p>
@@ -148,7 +201,7 @@ export default function Family() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(members ?? []).map(member => (
+          {filteredMembers.map(member => (
             <Card key={member.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -172,6 +225,12 @@ export default function Family() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
+                {member.groupName && (
+                  <div className="flex items-center gap-1.5">
+                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Badge variant="outline" className="text-xs">{member.groupName}</Badge>
+                  </div>
+                )}
                 {member.bloodType && (
                   <div className="flex items-center gap-2">
                     <Heart className="h-3.5 w-3.5 text-red-400" />

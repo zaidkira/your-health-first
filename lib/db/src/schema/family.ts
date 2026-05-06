@@ -7,6 +7,7 @@ export const familyMembersTable = pgTable("family_members", {
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
   relationship: text("relationship").notNull(),
+  groupName: text("group_name"),
   dateOfBirth: text("date_of_birth"),
   bloodType: text("blood_type"),
   notes: text("notes"),

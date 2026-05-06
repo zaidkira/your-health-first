@@ -26,6 +26,8 @@ tags:
     description: Pharmacy and medicine search
   - name: family
     description: Family member management
+  - name: conditions
+    description: Chronic conditions tracking
   - name: admin
     description: Admin user management
 paths:
@@ -558,6 +560,135 @@ paths:
       operationId: deleteFamilyMember
       tags: [family]
       summary: Remove a family member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /records/{id}/share:
+    post:
+      operationId: shareRecord
+      tags: [records]
+      summary: Share a medical record with a doctor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShareRecordBody"
+      responses:
+        "201":
+          description: Record shared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedRecord"
+        "404":
+          description: Record not found
+
+  /records/sent:
+    get:
+      operationId: listSentRecords
+      tags: [records]
+      summary: List records I have shared with doctors
+      responses:
+        "200":
+          description: List of shared records with record and doctor info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedRecord"
+
+  /records/received:
+    get:
+      operationId: listReceivedRecords
+      tags: [records]
+      summary: List records shared with me (doctor view)
+      responses:
+        "200":
+          description: List of records received
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedRecord"
+
+  /conditions:
+    get:
+      operationId: listConditions
+      tags: [conditions]
+      summary: List chronic conditions
+      responses:
+        "200":
+          description: List of conditions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChronicCondition"
+    post:
+      operationId: createCondition
+      tags: [conditions]
+      summary: Add a chronic condition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConditionBody"
+      responses:
+        "201":
+          description: Condition created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChronicCondition"
+
+  /conditions/{id}:
+    patch:
+      operationId: updateCondition
+      tags: [conditions]
+      summary: Update a chronic condition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConditionBody"
+      responses:
+        "200":
+          description: Updated condition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChronicCondition"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteCondition
+      tags: [conditions]
+      summary: Delete a chronic condition
       parameters:
         - name: id
           in: path
@@ -1192,6 +1323,8 @@ components:
           type: string
         relationship:
           type: string
+        groupName:
+          type: ["string", "null"]
         dateOfBirth:
           type: ["string", "null"]
         bloodType:
@@ -1214,6 +1347,8 @@ components:
           type: string
         relationship:
           type: string
+        groupName:
+          type: ["string", "null"]
         dateOfBirth:
           type: ["string", "null"]
         bloodType:
@@ -1231,9 +1366,98 @@ components:
           type: string
         relationship:
           type: string
+        groupName:
+          type: ["string", "null"]
         dateOfBirth:
           type: ["string", "null"]
         bloodType:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    SharedRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        recordId:
+          type: integer
+        senderId:
+          type: integer
+        doctorId:
+          type: integer
+        message:
+          type: ["string", "null"]
+        sentAt:
+          type: string
+        record:
+          $ref: "#/components/schemas/MedicalRecord"
+        doctorName:
+          type: ["string", "null"]
+        senderName:
+          type: ["string", "null"]
+      required:
+        - id
+        - recordId
+        - senderId
+        - doctorId
+        - sentAt
+
+    ShareRecordBody:
+      type: object
+      properties:
+        doctorId:
+          type: integer
+        message:
+          type: ["string", "null"]
+      required:
+        - doctorId
+
+    ChronicCondition:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        diagnosedYear:
+          type: ["string", "null"]
+        severity:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - name
+        - createdAt
+
+    CreateConditionBody:
+      type: object
+      properties:
+        name:
+          type: string
+        diagnosedYear:
+          type: ["string", "null"]
+        severity:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required:
+        - name
+
+    UpdateConditionBody:
+      type: object
+      properties:
+        name:
+          type: string
+        diagnosedYear:
+          type: ["string", "null"]
+        severity:
           type: ["string", "null"]
         notes:
           type: ["string", "null"]

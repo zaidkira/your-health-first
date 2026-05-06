@@ -30,7 +30,7 @@ A full-stack healthcare platform for Algeria with medication tracking/reminders,
   - `src/lib/auth.tsx` — AuthProvider (localStorage-based)
   - `src/index.css` — healthcare CSS theme variables
 - `artifacts/api-server/` — Express API
-  - `src/routes/` — auth, dashboard, medications, records, doctors, appointments, pharmacies, family
+  - `src/routes/` — auth, dashboard, medications, records, shared_records, conditions, doctors, appointments, pharmacies, family
   - `src/lib/auth.ts` — HMAC JWT + password hashing
 - `lib/db/src/schema/` — Drizzle schema files (all tables)
 - `lib/api-spec/` — OpenAPI spec (source of truth for codegen)
@@ -50,11 +50,12 @@ A full-stack healthcare platform for Algeria with medication tracking/reminders,
 - Register/login with Algerian wilaya selection
 - Dashboard: today's medication schedule, upcoming appointments, summary stats
 - Medications: add/delete/mark-taken with time-based reminders, family member assignment
-- Medical Records: store prescriptions, lab tests, scans with optional file URLs
+- Medical Records: store prescriptions, lab tests, scans with optional file URLs; share records with any doctor; patient sees "Sent" tab; doctor sees "Received" tab
+- Chronic Conditions: add/edit/delete chronic illnesses with severity, year diagnosed, and notes
 - Doctors: browse 8+ Algerian doctors by specialty/wilaya, book appointments directly
 - Appointments: view upcoming/past, mark complete or cancel
 - Pharmacies: search 4+ Algerian pharmacies by medicine name or wilaya
-- Family: add/edit/delete family members with blood type and health notes
+- Family: add/edit/delete family members with blood type, health notes, and group labels (filter by group)
 
 ## Gotchas
 
