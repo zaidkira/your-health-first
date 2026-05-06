@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: your-health-first
+    env: node
+    buildCommand: npm install -g pnpm && pnpm install && pnpm run build
+    startCommand: cd artifacts/api-server && pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASE_PATH
+        value: "/"
+      - key: DATABASE_URL
+        sync: false
