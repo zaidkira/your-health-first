@@ -53,6 +53,8 @@ export interface UpdateProfileBody {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  /** @nullable */
+  bloodType?: string | null;
   doctorProfile?: DoctorProfile;
   pharmacyProfile?: PharmacyProfile;
 }
@@ -75,6 +77,8 @@ export interface ProfileResponse {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  /** @nullable */
+  bloodType?: string | null;
   role: ProfileResponseRole;
   createdAt: string;
   doctorProfile?: DoctorProfile;
@@ -103,6 +107,8 @@ export interface User {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  /** @nullable */
+  bloodType?: string | null;
   role: UserRole;
   createdAt: string;
 }
@@ -300,6 +306,8 @@ export interface AdminUser {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  /** @nullable */
+  bloodType?: string | null;
   role: AdminUserRole;
   createdAt: string;
   doctorProfile?: DoctorProfile;
@@ -322,6 +330,8 @@ export interface AdminUpdateUserBody {
   phone?: string | null;
   /** @nullable */
   wilaya?: string | null;
+  /** @nullable */
+  bloodType?: string | null;
   role?: AdminUpdateUserBodyRole;
   doctorProfile?: DoctorProfile;
   pharmacyProfile?: PharmacyProfile;

@@ -701,6 +701,8 @@ components:
           type: ["string", "null"]
         wilaya:
           type: ["string", "null"]
+        bloodType:
+          type: ["string", "null"]
         doctorProfile:
           $ref: "#/components/schemas/DoctorProfile"
         pharmacyProfile:
@@ -718,6 +720,8 @@ components:
         phone:
           type: ["string", "null"]
         wilaya:
+          type: ["string", "null"]
+        bloodType:
           type: ["string", "null"]
         role:
           type: string
@@ -769,6 +773,8 @@ components:
         phone:
           type: ["string", "null"]
         wilaya:
+          type: ["string", "null"]
+        bloodType:
           type: ["string", "null"]
         role:
           type: string
@@ -1138,6 +1144,8 @@ components:
           type: ["string", "null"]
         wilaya:
           type: ["string", "null"]
+        bloodType:
+          type: ["string", "null"]
         role:
           type: string
           enum: [patient, doctor, pharmacy, admin]
@@ -1162,6 +1170,8 @@ components:
         phone:
           type: ["string", "null"]
         wilaya:
+          type: ["string", "null"]
+        bloodType:
           type: ["string", "null"]
         role:
           type: string
