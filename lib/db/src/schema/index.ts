@@ -7,3 +7,4 @@ export * from "./pharmacies";
 export * from "./family";
 export * from "./shared_records";
 export * from "./conditions";
+export * from "./emergency_contacts";
