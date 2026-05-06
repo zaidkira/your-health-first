@@ -40,9 +40,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = user?.role === "admin"
-    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
-    : BASE_NAV_ITEMS;
+  let navItems = BASE_NAV_ITEMS;
+  
+  if (user?.role === "doctor" || user?.role === "pharmacy") {
+    navItems = BASE_NAV_ITEMS.filter(item => 
+      ["Dashboard", "Doctors", "Pharmacies"].includes(item.name)
+    );
+  }
+
+  if (user?.role === "admin") {
+    navItems = [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM];
+  }
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="space-y-1">
