@@ -70,10 +70,13 @@ function parseHours(availableHours?: string) {
   return { open: parts[0] ?? "08:00", close: parts[1] ?? "17:00" };
 }
 
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
 const profileSchema = z.object({
-  name:    z.string().min(2, "Name must be at least 2 characters"),
-  phone:   z.string().optional(),
-  wilaya:  z.string().min(1, "Wilaya is required"),
+  name:      z.string().min(2, "Name must be at least 2 characters"),
+  phone:     z.string().optional(),
+  wilaya:    z.string().min(1, "Wilaya is required"),
+  bloodType: z.string().optional(),
   // Doctor
   doctorSpecialty:     z.string().optional(),
   doctorAddress:       z.string().optional(),
@@ -100,7 +103,7 @@ export default function Profile() {
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "", phone: "", wilaya: "",
+      name: "", phone: "", wilaya: "", bloodType: "",
       doctorSpecialty: "", doctorAddress: "", doctorAvailableDays: "Mon-Fri",
       doctorOpenTime: "08:00", doctorCloseTime: "17:00",
       doctorFee: undefined, doctorOnline: false,
@@ -116,9 +119,10 @@ export default function Profile() {
     const pp = profile.pharmacyProfile;
     const { open: dOpen, close: dClose } = parseHours(dp?.availableHours);
     form.reset({
-      name:   profile.name ?? "",
-      phone:  profile.phone ?? "",
-      wilaya: profile.wilaya ?? "",
+      name:      profile.name ?? "",
+      phone:     profile.phone ?? "",
+      wilaya:    profile.wilaya ?? "",
+      bloodType: (profile as any).bloodType ?? "",
       doctorSpecialty:     dp?.specialty     ?? "",
       doctorAddress:       dp?.address       ?? "",
       doctorAvailableDays: dp?.availableDays ?? "Mon-Fri",
@@ -135,9 +139,10 @@ export default function Profile() {
 
   function onSubmit(data: ProfileForm) {
     const payload: any = {
-      name:   data.name,
-      phone:  data.phone || null,
-      wilaya: data.wilaya,
+      name:      data.name,
+      phone:     data.phone || null,
+      wilaya:    data.wilaya,
+      bloodType: data.bloodType || null,
     };
 
     if (user?.role === "doctor") {
@@ -258,6 +263,27 @@ export default function Profile() {
                     <FormMessage />
                   </FormItem>
                 )} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Blood type — shown only for patients */}
+                {!isDoctor && !isPharmacy && (
+                  <FormField control={form.control} name="bloodType" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Blood Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Select blood type" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">Unknown</SelectItem>
+                          {BLOOD_TYPES.map(bt => <SelectItem key={bt} value={bt}>{bt}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                )}
               </div>
 
               {/* Read-only email */}

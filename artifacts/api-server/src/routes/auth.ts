@@ -102,6 +102,7 @@ router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
   res.json({
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+    bloodType: user.bloodType ?? null,
     role: user.role, createdAt: user.createdAt.toISOString(),
   });
 });
@@ -115,6 +116,7 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   const response: any = {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+    bloodType: user.bloodType ?? null,
     role: user.role, createdAt: user.createdAt.toISOString(),
   };
 
@@ -163,14 +165,15 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) { res.status(401).json({ error: "User not found" }); return; }
 
-  const { name, phone, wilaya } = parsed.data;
+  const { name, phone, wilaya, bloodType } = parsed.data;
 
   const [updated] = await db
     .update(usersTable)
     .set({
-      name:   name   ?? user.name,
-      phone:  phone  ?? user.phone,
-      wilaya: wilaya ?? user.wilaya,
+      name:      name      ?? user.name,
+      phone:     phone     !== undefined ? phone     : user.phone,
+      wilaya:    wilaya    !== undefined ? wilaya    : user.wilaya,
+      bloodType: bloodType !== undefined ? bloodType : user.bloodType,
     })
     .where(eq(usersTable.id, userId))
     .returning();
@@ -178,6 +181,7 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   const response: any = {
     id: updated.id, name: updated.name, email: updated.email,
     phone: updated.phone ?? null, wilaya: updated.wilaya ?? null,
+    bloodType: updated.bloodType ?? null,
     role: updated.role, createdAt: updated.createdAt.toISOString(),
   };
 

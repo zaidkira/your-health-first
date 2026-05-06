@@ -23,6 +23,7 @@ async function buildUserResponse(user: typeof usersTable.$inferSelect) {
     email: user.email,
     phone: user.phone ?? null,
     wilaya: user.wilaya ?? null,
+    bloodType: user.bloodType ?? null,
     role: user.role,
     createdAt: user.createdAt.toISOString(),
   };
@@ -68,6 +69,7 @@ const AdminUpdateUserBody = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().nullable().optional(),
   wilaya: z.string().nullable().optional(),
+  bloodType: z.string().nullable().optional(),
   role: z.enum(["patient", "doctor", "pharmacy", "admin"]).optional(),
   doctorProfile: z.object({
     specialty: z.string(),
@@ -104,15 +106,16 @@ router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Prom
     return;
   }
 
-  const { name, phone, wilaya, role, doctorProfile, pharmacyProfile } = parsed.data;
+  const { name, phone, wilaya, bloodType, role, doctorProfile, pharmacyProfile } = parsed.data;
 
   const [updated] = await db
     .update(usersTable)
     .set({
-      name:   name   ?? existing.name,
-      phone:  phone  !== undefined ? phone  : existing.phone,
-      wilaya: wilaya !== undefined ? wilaya : existing.wilaya,
-      role:   role   ?? existing.role,
+      name:      name      ?? existing.name,
+      phone:     phone     !== undefined ? phone     : existing.phone,
+      wilaya:    wilaya    !== undefined ? wilaya    : existing.wilaya,
+      bloodType: bloodType !== undefined ? bloodType : existing.bloodType,
+      role:      role      ?? existing.role,
     })
     .where(eq(usersTable.id, targetId))
     .returning();

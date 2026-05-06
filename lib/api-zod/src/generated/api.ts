@@ -65,6 +65,7 @@ export const LoginResponse = zod.object({
     email: zod.string(),
     phone: zod.string().nullish(),
     wilaya: zod.string().nullish(),
+    bloodType: zod.string().nullish(),
     role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
     createdAt: zod.string(),
   }),
@@ -79,6 +80,7 @@ export const GetMeResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
 });
@@ -92,6 +94,7 @@ export const GetProfileResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
   doctorProfile: zod
@@ -121,6 +124,7 @@ export const UpdateProfileBody = zod.object({
   name: zod.string().optional(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   doctorProfile: zod
     .object({
       specialty: zod.string(),
@@ -147,6 +151,7 @@ export const UpdateProfileResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
   doctorProfile: zod
@@ -598,6 +603,7 @@ export const AdminListUsersResponseItem = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
   doctorProfile: zod
@@ -632,6 +638,7 @@ export const AdminUpdateUserBody = zod.object({
   name: zod.string().optional(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]).optional(),
   doctorProfile: zod
     .object({
@@ -659,6 +666,7 @@ export const AdminUpdateUserResponse = zod.object({
   email: zod.string(),
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
+  bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
   doctorProfile: zod
