@@ -5,3 +5,5 @@ export * from "./doctors";
 export * from "./appointments";
 export * from "./pharmacies";
 export * from "./family";
+export * from "./shared_records";
+export * from "./conditions";

@@ -343,6 +343,8 @@ export interface FamilyMember {
   name: string;
   relationship: string;
   /** @nullable */
+  groupName?: string | null;
+  /** @nullable */
   dateOfBirth?: string | null;
   /** @nullable */
   bloodType?: string | null;
@@ -355,6 +357,8 @@ export interface CreateFamilyMemberBody {
   name: string;
   relationship: string;
   /** @nullable */
+  groupName?: string | null;
+  /** @nullable */
   dateOfBirth?: string | null;
   /** @nullable */
   bloodType?: string | null;
@@ -366,9 +370,65 @@ export interface UpdateFamilyMemberBody {
   name?: string;
   relationship?: string;
   /** @nullable */
+  groupName?: string | null;
+  /** @nullable */
   dateOfBirth?: string | null;
   /** @nullable */
   bloodType?: string | null;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface SharedRecord {
+  id: number;
+  recordId: number;
+  senderId: number;
+  doctorId: number;
+  /** @nullable */
+  message?: string | null;
+  sentAt: string;
+  record?: MedicalRecord;
+  /** @nullable */
+  doctorName?: string | null;
+  /** @nullable */
+  senderName?: string | null;
+}
+
+export interface ShareRecordBody {
+  doctorId: number;
+  /** @nullable */
+  message?: string | null;
+}
+
+export interface ChronicCondition {
+  id: number;
+  userId: number;
+  name: string;
+  /** @nullable */
+  diagnosedYear?: string | null;
+  /** @nullable */
+  severity?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface CreateConditionBody {
+  name: string;
+  /** @nullable */
+  diagnosedYear?: string | null;
+  /** @nullable */
+  severity?: string | null;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface UpdateConditionBody {
+  name?: string;
+  /** @nullable */
+  diagnosedYear?: string | null;
+  /** @nullable */
+  severity?: string | null;
   /** @nullable */
   notes?: string | null;
 }

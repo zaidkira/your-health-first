@@ -14,6 +14,7 @@ import Doctors from "@/pages/doctors";
 import Appointments from "@/pages/appointments";
 import Pharmacies from "@/pages/pharmacies";
 import Family from "@/pages/family";
+import Conditions from "@/pages/conditions";
 import Profile from "@/pages/profile";
 import AdminUsers from "@/pages/admin-users";
 import AppLayout from "@/components/layout/AppLayout";
@@ -65,6 +66,9 @@ function Router() {
       </Route>
       <Route path="/family">
         <ProtectedRoute component={Family} />
+      </Route>
+      <Route path="/conditions">
+        <ProtectedRoute component={Conditions} />
       </Route>
       <Route path="/profile">
         <ProtectedRoute component={Profile} />
