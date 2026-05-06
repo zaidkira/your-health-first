@@ -88,7 +88,7 @@ const AdminUpdateUserBody = z.object({
 });
 
 router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
-  const targetId = parseInt(req.params.id, 10);
+  const targetId = parseInt(String(req.params.id), 10);
   if (isNaN(targetId)) {
     res.status(400).json({ error: "Invalid user id" });
     return;
