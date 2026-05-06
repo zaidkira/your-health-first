@@ -606,6 +606,75 @@ export const DeleteFamilyMemberParams = zod.object({
 });
 
 /**
+ * @summary List emergency contacts for a family member
+ */
+export const ListEmergencyContactsParams = zod.object({
+  memberId: zod.coerce.number(),
+});
+
+export const ListEmergencyContactsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  familyMemberId: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  relationship: zod.string(),
+  notes: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const ListEmergencyContactsResponse = zod.array(
+  ListEmergencyContactsResponseItem,
+);
+
+/**
+ * @summary Add an emergency contact for a family member
+ */
+export const CreateEmergencyContactParams = zod.object({
+  memberId: zod.coerce.number(),
+});
+
+export const CreateEmergencyContactBody = zod.object({
+  name: zod.string(),
+  phone: zod.string(),
+  relationship: zod.string(),
+  notes: zod.string().nullish(),
+});
+
+/**
+ * @summary Update an emergency contact
+ */
+export const UpdateEmergencyContactParams = zod.object({
+  memberId: zod.coerce.number(),
+  id: zod.coerce.number(),
+});
+
+export const UpdateEmergencyContactBody = zod.object({
+  name: zod.string().optional(),
+  phone: zod.string().optional(),
+  relationship: zod.string().optional(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateEmergencyContactResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  familyMemberId: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  relationship: zod.string(),
+  notes: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete an emergency contact
+ */
+export const DeleteEmergencyContactParams = zod.object({
+  memberId: zod.coerce.number(),
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary Share a medical record with a doctor
  */
 export const ShareRecordParams = zod.object({

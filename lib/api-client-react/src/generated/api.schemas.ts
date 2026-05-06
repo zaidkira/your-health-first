@@ -385,6 +385,34 @@ export interface UpdateFamilyMemberBody {
   notes?: string | null;
 }
 
+export interface EmergencyContact {
+  id: number;
+  userId: number;
+  familyMemberId: number;
+  name: string;
+  phone: string;
+  relationship: string;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface CreateEmergencyContactBody {
+  name: string;
+  phone: string;
+  relationship: string;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface UpdateEmergencyContactBody {
+  name?: string;
+  phone?: string;
+  relationship?: string;
+  /** @nullable */
+  notes?: string | null;
+}
+
 export interface SharedRecord {
   id: number;
   recordId: number;

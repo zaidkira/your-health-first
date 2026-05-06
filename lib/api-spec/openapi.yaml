@@ -570,6 +570,100 @@ paths:
         "204":
           description: Deleted
 
+  /family/{memberId}/emergency-contacts:
+    get:
+      operationId: listEmergencyContacts
+      tags: [family]
+      summary: List emergency contacts for a family member
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of emergency contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmergencyContact"
+    post:
+      operationId: createEmergencyContact
+      tags: [family]
+      summary: Add an emergency contact for a family member
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmergencyContactBody"
+      responses:
+        "201":
+          description: Emergency contact created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContact"
+
+  /family/{memberId}/emergency-contacts/{id}:
+    patch:
+      operationId: updateEmergencyContact
+      tags: [family]
+      summary: Update an emergency contact
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEmergencyContactBody"
+      responses:
+        "200":
+          description: Updated emergency contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContact"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEmergencyContact
+      tags: [family]
+      summary: Delete an emergency contact
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /records/{id}/share:
     post:
       operationId: shareRecord
@@ -1378,6 +1472,62 @@ components:
           type: ["string", "null"]
         bloodType:
           type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    EmergencyContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        familyMemberId:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        relationship:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - familyMemberId
+        - name
+        - phone
+        - relationship
+        - createdAt
+
+    CreateEmergencyContactBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        relationship:
+          type: string
+        notes:
+          type: ["string", "null"]
+      required:
+        - name
+        - phone
+        - relationship
+
+    UpdateEmergencyContactBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        relationship:
+          type: string
         notes:
           type: ["string", "null"]
 

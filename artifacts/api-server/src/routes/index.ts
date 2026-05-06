@@ -9,6 +9,7 @@ import doctorsRouter from "./doctors";
 import appointmentsRouter from "./appointments";
 import pharmaciesRouter from "./pharmacies";
 import familyRouter from "./family";
+import emergencyContactsRouter from "./emergency_contacts";
 import conditionsRouter from "./conditions";
 import adminRouter from "./admin";
 
@@ -24,6 +25,7 @@ router.use(doctorsRouter);
 router.use(appointmentsRouter);
 router.use(pharmaciesRouter);
 router.use(familyRouter);
+router.use(emergencyContactsRouter);
 router.use(conditionsRouter);
 router.use(adminRouter);
 
