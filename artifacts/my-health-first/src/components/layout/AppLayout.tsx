@@ -8,6 +8,7 @@ import {
   Calendar,
   MapPin,
   Users,
+  UsersRound,
   Activity,
   LogOut,
   Menu,
@@ -30,7 +31,8 @@ const BASE_NAV_ITEMS = [
   { name: "Doctors",         href: "/doctors",      icon: UserRound       },
   { name: "Appointments",    href: "/appointments", icon: Calendar        },
   { name: "Pharmacies",      href: "/pharmacies",   icon: MapPin          },
-  { name: "Family",          href: "/family",       icon: Users           },
+  { name: "Family",          href: "/family",       icon: UsersRound      },
+  { name: "Groups",          href: "/groups",       icon: Users           },
 ];
 
 const ADMIN_NAV_ITEM = { name: "All Users", href: "/admin/users", icon: ShieldCheck };
@@ -44,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   
   if (user?.role === "doctor" || user?.role === "pharmacy") {
     navItems = BASE_NAV_ITEMS.filter(item => 
-      ["Dashboard", "Doctors", "Pharmacies"].includes(item.name)
+      ["Dashboard", "Doctors", "Pharmacies", "Medical Records"].includes(item.name)
     );
   }
 

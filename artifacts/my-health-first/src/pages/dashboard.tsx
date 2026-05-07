@@ -71,15 +71,28 @@ export default function Dashboard() {
             
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">Family Members</CardTitle>
+                <CardTitle className="text-sm font-medium">Community Groups</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{summary?.familyMembers || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">Profiles managed</p>
+                <p className="text-xs text-muted-foreground mt-1">Support groups joined</p>
               </CardContent>
             </Card>
           </>
+        )}
+
+        {isDoctor && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Patient Documents</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary?.totalRecords || 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">Records shared with you</p>
+            </CardContent>
+          </Card>
         )}
       </div>
 

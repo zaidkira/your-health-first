@@ -75,4 +75,28 @@ router.get("/records/received", requireAuth, async (req, res): Promise<void> => 
   res.json(enriched);
 });
 
+router.post("/records/shared/:id/reply", requireAuth, async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  const params = RecordIdParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const { reply } = req.body;
+  if (!reply) { res.status(400).json({ error: "Reply is required" }); return; }
+
+  const [shared] = await db
+    .select()
+    .from(sharedRecordsTable)
+    .where(and(eq(sharedRecordsTable.id, params.data.id), eq(sharedRecordsTable.doctorId, userId)));
+  if (!shared) { res.status(404).json({ error: "Shared record not found" }); return; }
+
+  const [updated] = await db
+    .update(sharedRecordsTable)
+    .set({ doctorReply: reply })
+    .where(eq(sharedRecordsTable.id, params.data.id))
+    .returning();
+
+  const [record] = await db.select().from(medicalRecordsTable).where(eq(medicalRecordsTable.id, updated.recordId));
+  const [sender] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.senderId));
+  res.json(formatSharedRecord({ ...updated, record: record ?? null, senderName: sender?.name ?? null }));
+});
+
 export default router;

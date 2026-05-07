@@ -17,6 +17,7 @@ import Family from "@/pages/family";
 import Conditions from "@/pages/conditions";
 import Profile from "@/pages/profile";
 import AdminUsers from "@/pages/admin-users";
+import Groups from "@/pages/groups";
 import AppLayout from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,9 @@ function Router() {
       </Route>
       <Route path="/conditions">
         <ProtectedRoute component={Conditions} />
+      </Route>
+      <Route path="/groups">
+        <ProtectedRoute component={Groups} />
       </Route>
       <Route path="/profile">
         <ProtectedRoute component={Profile} />

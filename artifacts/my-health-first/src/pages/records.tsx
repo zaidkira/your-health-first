@@ -2,13 +2,14 @@ import { useState } from "react";
 import {
   useListRecords, useCreateRecord, useDeleteRecord, getListRecordsQueryKey,
   useShareRecord, useListSentRecords, useListReceivedRecords,
+  useReplyToSharedRecord, getListReceivedRecordsQueryKey, getListSentRecordsQueryKey,
   useListDoctors,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import {
   FileText, Plus, Trash2, Download, Stethoscope, FlaskConical,
-  ScanLine, FolderOpen, Send, Inbox, ArrowUpRight
+  ScanLine, FolderOpen, Send, Inbox, ArrowUpRight, MessageSquare, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,8 +71,11 @@ export default function Records() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [replyOpen, setReplyOpen] = useState(false);
   const [shareRecordId, setShareRecordId] = useState<number | null>(null);
+  const [replyRecordId, setReplyRecordId] = useState<number | null>(null);
   const [shareForm, setShareForm] = useState({ doctorId: "", message: "" });
+  const [replyText, setReplyText] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [form, setForm] = useState(emptyForm);
 
@@ -125,6 +129,30 @@ export default function Records() {
           toast({ title: "Record sent to doctor successfully" });
         },
         onError: () => toast({ title: "Failed to send record", variant: "destructive" }),
+      }
+    );
+  }
+  
+  const replyToRecord = useReplyToSharedRecord();
+
+  function openReply(id: number) {
+    setReplyRecordId(id);
+    setReplyText("");
+    setReplyOpen(true);
+  }
+
+  function handleReply(e: React.FormEvent) {
+    e.preventDefault();
+    if (!replyRecordId || !replyText) return;
+    replyToRecord.mutate(
+      { id: replyRecordId, data: { reply: replyText } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListReceivedRecordsQueryKey() });
+          setReplyOpen(false);
+          toast({ title: "Reply sent to patient" });
+        },
+        onError: () => toast({ title: "Failed to send reply", variant: "destructive" }),
       }
     );
   }
@@ -205,6 +233,31 @@ export default function Records() {
               <Button type="button" variant="outline" onClick={() => setShareOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={shareRecord.isPending || !shareForm.doctorId}>
                 {shareRecord.isPending ? "Sending..." : "Send to Doctor"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Doctor Reply Dialog */}
+      <Dialog open={replyOpen} onOpenChange={setReplyOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Reply to Patient</DialogTitle></DialogHeader>
+          <form onSubmit={handleReply} className="space-y-4 mt-2">
+            <div className="space-y-1">
+              <Label>Your Message</Label>
+              <Textarea 
+                placeholder="Write your feedback to the patient..." 
+                value={replyText} 
+                onChange={e => setReplyText(e.target.value)} 
+                rows={4} 
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setReplyOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={replyToRecord.isPending || !replyText}>
+                {replyToRecord.isPending ? "Sending..." : "Send Reply"}
               </Button>
             </div>
           </form>
@@ -298,6 +351,14 @@ export default function Records() {
                       <p className="text-xs text-muted-foreground">Sent to: <span className="font-medium text-foreground">{(sr as any).doctorName ?? `Doctor #${sr.doctorId}`}</span></p>
                       <p className="text-xs text-muted-foreground">{format(parseISO(sr.sentAt), "MMM d, yyyy")}</p>
                       {sr.message && <p className="text-sm text-muted-foreground italic">"{sr.message}"</p>}
+                      {sr.doctorReply && (
+                        <div className="mt-3 p-2 bg-blue-50 rounded-md border border-blue-100">
+                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <MessageSquare className="h-2.5 w-2.5" /> Doctor's Reply
+                          </p>
+                          <p className="text-sm text-blue-900 leading-tight">{sr.doctorReply}</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -336,6 +397,17 @@ export default function Records() {
                           <Download className="h-3 w-3" />
                           {sr.record.fileName ?? "View File"}
                         </a>
+                      )}
+                      
+                      {sr.doctorReply ? (
+                        <div className="mt-3 p-2 bg-green-50 rounded-md border border-green-100">
+                          <p className="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-1">Your Reply</p>
+                          <p className="text-sm text-green-900 leading-tight">{sr.doctorReply}</p>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="outline" className="w-full gap-2 mt-2" onClick={() => openReply(sr.id)}>
+                          <MessageSquare className="h-3.5 w-3.5" /> Reply to Patient
+                        </Button>
                       )}
                     </CardContent>
                   </Card>

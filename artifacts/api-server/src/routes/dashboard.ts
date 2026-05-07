@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and, gte, count } from "drizzle-orm";
-import { db, medicationsTable, medicalRecordsTable, appointmentsTable, familyMembersTable, medicationRemindersTable, usersTable, doctorsTable } from "@workspace/db";
+import { db, medicationsTable, medicalRecordsTable, appointmentsTable, familyMembersTable, medicationRemindersTable, usersTable, doctorsTable, sharedRecordsTable } from "@workspace/db";
 import { requireAuth, getUserId } from "../lib/auth";
 
 const router: IRouter = Router();
@@ -52,11 +52,20 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
     .from(familyMembersTable)
     .where(eq(familyMembersTable.userId, userId));
 
+  let finalRecordsCount = Number(recordsCount?.count ?? 0);
+  if (user.role === "doctor") {
+    const [receivedCount] = await db
+      .select({ count: count() })
+      .from(sharedRecordsTable)
+      .where(eq(sharedRecordsTable.doctorId, userId));
+    finalRecordsCount = Number(receivedCount?.count ?? 0);
+  }
+
   res.json({
     medicationsToday: todayReminders.length,
     medicationsTakenToday: takenToday,
     upcomingAppointments: Number(upcomingCount?.count ?? 0),
-    totalRecords: Number(recordsCount?.count ?? 0),
+    totalRecords: finalRecordsCount,
     familyMembers: Number(familyCount?.count ?? 0),
     activeMedications: Number(activeMeds?.count ?? 0),
   });

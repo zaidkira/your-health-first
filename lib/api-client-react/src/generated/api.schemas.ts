@@ -434,12 +434,49 @@ export interface SharedRecord {
   doctorId: number;
   /** @nullable */
   message?: string | null;
+  /** @nullable */
+  doctorReply?: string | null;
   sentAt: string;
   record?: MedicalRecord;
   /** @nullable */
   doctorName?: string | null;
   /** @nullable */
   senderName?: string | null;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  createdById: number;
+  createdAt: string;
+  memberCount?: number;
+}
+
+export type GroupDetailMembersItem = {
+  id: number;
+  name: string;
+  email: string;
+  role?: string;
+};
+
+export type GroupDetail = Group & {
+  members?: GroupDetailMembersItem[];
+};
+
+export interface CreateGroupBody {
+  name: string;
+  description?: string;
+}
+
+export interface GroupMessage {
+  id: number;
+  groupId: number;
+  userId: number;
+  userName?: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface ShareRecordBody {
@@ -489,4 +526,16 @@ export type ListDoctorsParams = {
 export type ListPharmaciesParams = {
   medicine?: string;
   wilaya?: string;
+};
+
+export type ReplyToSharedRecordBody = {
+  reply: string;
+};
+
+export type InviteToGroupBody = {
+  email: string;
+};
+
+export type SendGroupMessageBody = {
+  content: string;
 };

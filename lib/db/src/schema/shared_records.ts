@@ -7,6 +7,7 @@ export const sharedRecordsTable = pgTable("shared_records", {
   senderId: integer("sender_id").notNull(),
   doctorId: integer("doctor_id").notNull(),
   message: text("message"),
+  doctorReply: text("doctor_reply"),
   sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

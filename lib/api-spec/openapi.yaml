@@ -30,6 +30,8 @@ tags:
     description: Chronic conditions tracking
   - name: admin
     description: Admin user management
+  - name: groups
+    description: Patient community groups
 paths:
   /healthz:
     get:
@@ -720,6 +722,192 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SharedRecord"
+
+  /records/shared/{id}/reply:
+    post:
+      operationId: replyToSharedRecord
+      tags: [records]
+      summary: Doctor reply to a shared record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reply:
+                  type: string
+              required: [reply]
+      responses:
+        "200":
+          description: Reply saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedRecord"
+
+  /groups:
+    get:
+      operationId: listGroups
+      tags: [groups]
+      summary: List groups I am a member of
+      responses:
+        "200":
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+    post:
+      operationId: createGroup
+      tags: [groups]
+      summary: Create a new group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupBody"
+      responses:
+        "201":
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+
+  /groups/{id}:
+    get:
+      operationId: getGroup
+      tags: [groups]
+      summary: Get group details including members
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupDetail"
+    delete:
+      operationId: deleteGroup
+      tags: [groups]
+      summary: Delete a group (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Group deleted
+
+  /groups/{id}/members:
+    post:
+      operationId: inviteToGroup
+      tags: [groups]
+      summary: Invite a user to a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required: [email]
+      responses:
+        "200":
+          description: User invited
+
+  /groups/{groupId}/members/{userId}:
+    delete:
+      operationId: removeMember
+      tags: [groups]
+      summary: Remove a member from group (admin or self)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Member removed
+
+  /groups/{id}/messages:
+    get:
+      operationId: listGroupMessages
+      tags: [groups]
+      summary: List messages in a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupMessage"
+    post:
+      operationId: sendGroupMessage
+      tags: [groups]
+      summary: Post a message to a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+              required: [content]
+      responses:
+        "201":
+          description: Message posted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupMessage"
 
   /conditions:
     get:
@@ -1560,6 +1748,8 @@ components:
           type: integer
         message:
           type: ["string", "null"]
+        doctorReply:
+          type: ["string", "null"]
         sentAt:
           type: string
         record:
@@ -1574,6 +1764,69 @@ components:
         - senderId
         - doctorId
         - sentAt
+
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        createdById:
+          type: integer
+        createdAt:
+          type: string
+        memberCount:
+          type: integer
+      required: [id, name, createdById, createdAt]
+
+    GroupDetail:
+      allOf:
+        - $ref: "#/components/schemas/Group"
+        - type: object
+          properties:
+            members:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                required: [id, name, email]
+
+    CreateGroupBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      required: [name]
+
+    GroupMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        groupId:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+      required: [id, groupId, userId, content, createdAt]
 
     ShareRecordBody:
       type: object

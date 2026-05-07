@@ -759,6 +759,7 @@ export const ListSentRecordsResponseItem = zod.object({
   senderId: zod.number(),
   doctorId: zod.number(),
   message: zod.string().nullish(),
+  doctorReply: zod.string().nullish(),
   sentAt: zod.string(),
   record: zod
     .object({
@@ -788,6 +789,7 @@ export const ListReceivedRecordsResponseItem = zod.object({
   senderId: zod.number(),
   doctorId: zod.number(),
   message: zod.string().nullish(),
+  doctorReply: zod.string().nullish(),
   sentAt: zod.string(),
   record: zod
     .object({
@@ -809,6 +811,151 @@ export const ListReceivedRecordsResponseItem = zod.object({
 export const ListReceivedRecordsResponse = zod.array(
   ListReceivedRecordsResponseItem,
 );
+
+/**
+ * @summary Doctor reply to a shared record
+ */
+export const ReplyToSharedRecordParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ReplyToSharedRecordBody = zod.object({
+  reply: zod.string(),
+});
+
+export const ReplyToSharedRecordResponse = zod.object({
+  id: zod.number(),
+  recordId: zod.number(),
+  senderId: zod.number(),
+  doctorId: zod.number(),
+  message: zod.string().nullish(),
+  doctorReply: zod.string().nullish(),
+  sentAt: zod.string(),
+  record: zod
+    .object({
+      id: zod.number(),
+      userId: zod.number(),
+      familyMemberId: zod.number().nullish(),
+      title: zod.string(),
+      category: zod.string(),
+      description: zod.string().nullish(),
+      fileUrl: zod.string().nullish(),
+      fileName: zod.string().nullish(),
+      recordDate: zod.string(),
+      createdAt: zod.string(),
+    })
+    .optional(),
+  doctorName: zod.string().nullish(),
+  senderName: zod.string().nullish(),
+});
+
+/**
+ * @summary List groups I am a member of
+ */
+export const ListGroupsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  createdById: zod.number(),
+  createdAt: zod.string(),
+  memberCount: zod.number().optional(),
+});
+export const ListGroupsResponse = zod.array(ListGroupsResponseItem);
+
+/**
+ * @summary Create a new group
+ */
+export const CreateGroupBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+});
+
+/**
+ * @summary Get group details including members
+ */
+export const GetGroupParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetGroupResponse = zod
+  .object({
+    id: zod.number(),
+    name: zod.string(),
+    description: zod.string().nullish(),
+    createdById: zod.number(),
+    createdAt: zod.string(),
+    memberCount: zod.number().optional(),
+  })
+  .and(
+    zod.object({
+      members: zod
+        .array(
+          zod.object({
+            id: zod.number(),
+            name: zod.string(),
+            email: zod.string(),
+            role: zod.string().optional(),
+          }),
+        )
+        .optional(),
+    }),
+  );
+
+/**
+ * @summary Delete a group (admin only)
+ */
+export const DeleteGroupParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Invite a user to a group
+ */
+export const InviteToGroupParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const InviteToGroupBody = zod.object({
+  email: zod.string(),
+});
+
+/**
+ * @summary Remove a member from group (admin or self)
+ */
+export const RemoveMemberParams = zod.object({
+  groupId: zod.coerce.number(),
+  userId: zod.coerce.number(),
+});
+
+/**
+ * @summary List messages in a group
+ */
+export const ListGroupMessagesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListGroupMessagesResponseItem = zod.object({
+  id: zod.number(),
+  groupId: zod.number(),
+  userId: zod.number(),
+  userName: zod.string().optional(),
+  content: zod.string(),
+  createdAt: zod.string(),
+});
+export const ListGroupMessagesResponse = zod.array(
+  ListGroupMessagesResponseItem,
+);
+
+/**
+ * @summary Post a message to a group
+ */
+export const SendGroupMessageParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SendGroupMessageBody = zod.object({
+  content: zod.string(),
+});
 
 /**
  * @summary List chronic conditions
