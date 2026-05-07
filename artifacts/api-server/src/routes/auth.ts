@@ -3,68 +3,74 @@ import { eq } from "drizzle-orm";
 import { db, usersTable, doctorsTable, pharmaciesTable } from "@workspace/db";
 import { RegisterBody, LoginBody, UpdateProfileBody } from "@workspace/api-zod";
 import { hashPassword, verifyPassword, createToken, requireAuth, getUserId } from "../lib/auth";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
 router.post("/auth/register", async (req, res): Promise<void> => {
-  const parsed = RegisterBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const { name, email, password, phone, wilaya } = parsed.data;
+  try {
+    const parsed = RegisterBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const { name, email, password, phone, wilaya } = parsed.data;
 
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, email));
-  if (existing.length > 0) {
-    res.status(400).json({ error: "Email already registered" });
-    return;
-  }
+    const existing = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    if (existing.length > 0) {
+      res.status(400).json({ error: "Email already registered" });
+      return;
+    }
 
-  const passwordHash = hashPassword(password);
-  const role = parsed.data.role ?? "patient";
-  const [user] = await db
-    .insert(usersTable)
-    .values({ name, email, passwordHash, phone, wilaya, role })
-    .returning();
+    const passwordHash = hashPassword(password);
+    const role = parsed.data.role ?? "patient";
+    const [user] = await db
+      .insert(usersTable)
+      .values({ name, email, passwordHash, phone, wilaya, role })
+      .returning();
 
-  if (role === "doctor" && parsed.data.doctorProfile) {
-    const dp = parsed.data.doctorProfile;
-    await db.insert(doctorsTable).values({
-      name,
-      specialty: dp.specialty,
-      wilaya: wilaya ?? "Algiers",
-      address: dp.address,
-      phone: phone ?? null,
-      availableDays: dp.availableDays,
-      availableHours: dp.availableHours,
-      consultationFee: dp.consultationFee,
-      isOnlineConsultation: dp.isOnlineConsultation ?? false,
-      rating: 4.0,
-      reviewCount: 0,
+    if (role === "doctor" && parsed.data.doctorProfile) {
+      const dp = parsed.data.doctorProfile;
+      await db.insert(doctorsTable).values({
+        name,
+        specialty: dp.specialty,
+        wilaya: wilaya ?? "Algiers",
+        address: dp.address,
+        phone: phone ?? null,
+        availableDays: dp.availableDays,
+        availableHours: dp.availableHours,
+        consultationFee: dp.consultationFee,
+        isOnlineConsultation: dp.isOnlineConsultation ?? false,
+        rating: 4.0,
+        reviewCount: 0,
+      });
+    }
+
+    if (role === "pharmacy" && parsed.data.pharmacyProfile) {
+      const pp = parsed.data.pharmacyProfile;
+      await db.insert(pharmaciesTable).values({
+        name,
+        wilaya: wilaya ?? "Algiers",
+        address: pp.address,
+        phone: phone ?? null,
+        isOpenNow: true,
+        is24h: pp.is24h ?? false,
+        openTime: pp.is24h ? "00:00" : (pp.openTime ?? "08:00"),
+        closeTime: pp.is24h ? "23:59" : (pp.closeTime ?? "21:00"),
+        medicinesJson: JSON.stringify([]),
+      });
+    }
+
+    const token = createToken(user.id);
+    const fullUser = await getFullUser(user);
+    res.status(201).json({
+      token,
+      user: fullUser,
     });
+  } catch (err: any) {
+    logger.error({ err, body: req.body }, "Registration error");
+    res.status(500).json({ error: err.message || "Internal server error" });
   }
-
-  if (role === "pharmacy" && parsed.data.pharmacyProfile) {
-    const pp = parsed.data.pharmacyProfile;
-    await db.insert(pharmaciesTable).values({
-      name,
-      wilaya: wilaya ?? "Algiers",
-      address: pp.address,
-      phone: phone ?? null,
-      isOpenNow: true,
-      is24h: pp.is24h ?? false,
-      openTime: pp.is24h ? "00:00" : (pp.openTime ?? "08:00"),
-      closeTime: pp.is24h ? "23:59" : (pp.closeTime ?? "21:00"),
-      medicinesJson: JSON.stringify([]),
-    });
-  }
-
-  const token = createToken(user.id);
-  const fullUser = await getFullUser(user);
-  res.status(201).json({
-    token,
-    user: fullUser,
-  });
 });
 
 async function getFullUser(user: any) {
