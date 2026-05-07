@@ -23,11 +23,10 @@ router.get("/auth/debug/fix-db", async (req, res) => {
       steps.push("Checked user_id in pharmacies");
     } catch (e: any) { steps.push("Error pharmacies column: " + e.message); }
     
-    // 2. Ensure shared_records table exists
+    // 2. Ensure record_shares table exists
     try {
-      // Try a different name if this fails consistently
       await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS shared_records (
+        CREATE TABLE IF NOT EXISTS record_shares (
           id SERIAL PRIMARY KEY,
           record_id INTEGER NOT NULL,
           sender_id INTEGER NOT NULL,
@@ -37,10 +36,9 @@ router.get("/auth/debug/fix-db", async (req, res) => {
           sent_at TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT NOW()
         );
       `);
-      steps.push("Checked shared_records table");
+      steps.push("Checked record_shares table");
     } catch (e: any) { 
-      logger.error({ e }, "Shared records table creation error");
-      steps.push("Error shared_records table: " + e.message + " (Detail: " + (e.detail || "none") + ")"); 
+      steps.push("Error record_shares table: " + e.message); 
     }
     
     // 3. Link existing profiles by name as a fallback
