@@ -43,8 +43,6 @@ router.post("/auth/register", async (req, res): Promise<void> => {
           availableHours: dp.availableHours,
           consultationFee: dp.consultationFee,
           isOnlineConsultation: dp.isOnlineConsultation ?? false,
-          rating: 4.0,
-          reviewCount: 0,
         });
       }
 

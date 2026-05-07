@@ -13,7 +13,7 @@ export const doctorsTable = pgTable("doctors", {
   reviewCount: integer("review_count").notNull().default(0),
   availableDays: text("available_days").notNull(),
   availableHours: text("available_hours").notNull().default("08:00 - 17:00"),
-  consultationFee: real("consultation_fee").notNull(),
+  consultationFee: integer("consultation_fee").notNull(),
   imageUrl: text("image_url"),
   isOnlineConsultation: boolean("is_online_consultation").notNull().default(false),
   lat: real("lat"),
