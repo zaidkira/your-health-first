@@ -28,25 +28,35 @@ function formatSharedRecord(row: typeof sharedRecordsTable.$inferSelect & {
 }
 
 router.post("/records/:id/share", requireAuth, async (req, res): Promise<void> => {
-  const userId = getUserId(req);
-  const params = RecordIdParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
-  const body = ShareRecordBody.safeParse(req.body);
-  if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
+  try {
+    const userId = getUserId(req);
+    const params = RecordIdParams.safeParse(req.params);
+    if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+    const body = ShareRecordBody.safeParse(req.body);
+    if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
 
-  const [record] = await db
-    .select()
-    .from(medicalRecordsTable)
-    .where(and(eq(medicalRecordsTable.id, params.data.id), eq(medicalRecordsTable.userId, userId)));
-  if (!record) { res.status(404).json({ error: "Record not found" }); return; }
+    const [record] = await db
+      .select()
+      .from(medicalRecordsTable)
+      .where(and(eq(medicalRecordsTable.id, params.data.id), eq(medicalRecordsTable.userId, userId)));
+    if (!record) { res.status(404).json({ error: "Record not found" }); return; }
 
-  const [shared] = await db
-    .insert(sharedRecordsTable)
-    .values({ recordId: params.data.id, senderId: userId, doctorId: body.data.doctorId, message: body.data.message ?? null })
-    .returning();
+    const [shared] = await db
+      .insert(sharedRecordsTable)
+      .values({ 
+        recordId: params.data.id, 
+        senderId: userId, 
+        doctorId: body.data.doctorId, 
+        message: body.data.message ?? null 
+      })
+      .returning();
 
-  const [doctor] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, body.data.doctorId));
-  res.status(201).json(formatSharedRecord({ ...shared, record, doctorName: doctor?.name ?? null }));
+    const [doctor] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, body.data.doctorId));
+    res.status(201).json(formatSharedRecord({ ...shared, record, doctorName: doctor?.name ?? null }));
+  } catch (err: any) {
+    console.error("Share record error:", err);
+    res.status(500).json({ error: err.message || "Failed to share record" });
+  }
 });
 
 router.get("/records/sent", requireAuth, async (req, res): Promise<void> => {

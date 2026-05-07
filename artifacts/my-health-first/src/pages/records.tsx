@@ -298,8 +298,8 @@ export default function Records() {
                       No doctors found matching your search.
                     </div>
                   ) : (
-                    filteredDoctors.map((d: any) => (
-                      <SelectItem key={d.id} value={String(d.userId)}>{d.name} — {d.specialty}</SelectItem>
+                    filteredDoctors.filter((d: any) => d.userId).map((d: any) => (
+                      <SelectItem key={d.id} value={String(d.userId || 0)}>{d.name} — {d.specialty}</SelectItem>
                     ))
                   )}
                 </SelectContent>

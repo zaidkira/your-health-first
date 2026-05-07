@@ -14,6 +14,19 @@ router.get("/auth/debug/fix-db", async (req, res) => {
     await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);`);
     await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);`);
     
+    // Create shared_records table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS shared_records (
+        id SERIAL PRIMARY KEY,
+        record_id INTEGER NOT NULL,
+        sender_id INTEGER NOT NULL,
+        doctor_id INTEGER NOT NULL,
+        message TEXT,
+        doctor_reply TEXT,
+        sent_at TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // Try to link existing profiles by name as a fallback
     await db.execute(sql`
       UPDATE doctors d 
