@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import {
   FileText, Plus, Trash2, Download, Stethoscope, FlaskConical,
-  ScanLine, FolderOpen, Send, Inbox, ArrowUpRight, MessageSquare, Users, X
+  ScanLine, FolderOpen, Send, Inbox, ArrowUpRight, MessageSquare, Users, X, Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,10 +78,16 @@ export default function Records() {
   const [replyText, setReplyText] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [form, setForm] = useState(emptyForm);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredRecords = filter === "all"
     ? (records ?? [])
     : (records ?? []).filter(r => r.category === filter);
+
+  const filteredDoctors = (doctors ?? []).filter(d => 
+    d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    d.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,6 +121,7 @@ export default function Records() {
   function openShare(recordId: number) {
     setShareRecordId(recordId);
     setShareForm({ doctorId: "", message: "" });
+    setSearchTerm("");
     setShareOpen(true);
   }
 
@@ -272,14 +279,29 @@ export default function Records() {
         <DialogContent>
           <DialogHeader><DialogTitle>Send Record to Doctor</DialogTitle></DialogHeader>
           <form onSubmit={handleShare} className="space-y-4 mt-2">
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label>Select Doctor</Label>
+              <div className="relative mb-2">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search doctor by name or specialty..." 
+                  className="pl-9 text-sm h-9"
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                />
+              </div>
               <Select value={shareForm.doctorId} onValueChange={v => setShareForm(f => ({ ...f, doctorId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Choose a doctor..." /></SelectTrigger>
                 <SelectContent>
-                  {(doctors ?? []).map(d => (
-                    <SelectItem key={d.id} value={String(d.id)}>{d.name} — {d.specialty}</SelectItem>
-                  ))}
+                  {filteredDoctors.length === 0 ? (
+                    <div className="py-6 px-2 text-center text-sm text-muted-foreground">
+                      No doctors found matching your search.
+                    </div>
+                  ) : (
+                    filteredDoctors.map(d => (
+                      <SelectItem key={d.id} value={String(d.id)}>{d.name} — {d.specialty}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
