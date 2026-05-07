@@ -55,7 +55,7 @@ const registerSchema = z.object({
   name:     z.string().min(2, "Name must be at least 2 characters"),
   email:    z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  phone:    z.string().optional(),
+  phone:    z.string().min(1, "Phone number is required"),
   wilaya:   z.string().min(1, "Wilaya is required"),
   role:     z.enum(["patient", "doctor", "pharmacy"]),
   // Doctor fields
@@ -71,6 +71,22 @@ const registerSchema = z.object({
   pharmacyIs24h:           z.boolean().optional(),
   pharmacyOpenTime:        z.string().optional(),
   pharmacyCloseTime:       z.string().optional(),
+}).refine((data) => {
+  if (data.role === "doctor") {
+    return !!data.doctorSpecialty && !!data.doctorAddress && !!data.doctorFee;
+  }
+  return true;
+}, {
+  message: "Doctor specialty, address and fee are required",
+  path: ["doctorSpecialty"],
+}).refine((data) => {
+  if (data.role === "pharmacy") {
+    return !!data.pharmacyAddress;
+  }
+  return true;
+}, {
+  message: "Pharmacy address is required",
+  path: ["pharmacyAddress"],
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -108,21 +124,21 @@ export default function Register() {
 
     if (data.role === "doctor") {
       payload.doctorProfile = {
-        specialty: data.doctorSpecialty,
-        address: data.doctorAddress,
-        availableDays: data.doctorAvailableDays,
-        availableHours: `${data.doctorOpenTime} - ${data.doctorCloseTime}`,
-        consultationFee: data.doctorFee ?? 2000,
-        isOnlineConsultation: data.doctorOnline ?? false,
+        specialty: data.doctorSpecialty || "",
+        address: data.doctorAddress || "",
+        availableDays: data.doctorAvailableDays || "Mon-Fri",
+        availableHours: `${data.doctorOpenTime || "08:00"} - ${data.doctorCloseTime || "17:00"}`,
+        consultationFee: Number(data.doctorFee) || 2000,
+        isOnlineConsultation: !!data.doctorOnline,
       };
     }
 
     if (data.role === "pharmacy") {
       payload.pharmacyProfile = {
-        address: data.pharmacyAddress,
-        is24h: data.pharmacyIs24h ?? false,
-        openTime: data.pharmacyIs24h ? "00:00" : data.pharmacyOpenTime,
-        closeTime: data.pharmacyIs24h ? "23:59" : data.pharmacyCloseTime,
+        address: data.pharmacyAddress || "",
+        is24h: !!data.pharmacyIs24h,
+        openTime: data.pharmacyIs24h ? "00:00" : (data.pharmacyOpenTime || "08:00"),
+        closeTime: data.pharmacyIs24h ? "23:59" : (data.pharmacyCloseTime || "21:00"),
       };
     }
 
