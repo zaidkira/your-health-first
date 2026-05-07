@@ -299,7 +299,7 @@ export default function Records() {
                     </div>
                   ) : (
                     filteredDoctors.map(d => (
-                      <SelectItem key={d.id} value={String(d.id)}>{d.name} — {d.specialty}</SelectItem>
+                      <SelectItem key={d.id} value={String(d.userId)}>{d.name} — {d.specialty}</SelectItem>
                     ))
                   )}
                 </SelectContent>

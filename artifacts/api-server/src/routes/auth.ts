@@ -8,35 +8,6 @@ import { sql } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-// TEMPORARY: Forcibly recreate the doctors table schema
-router.get("/auth/debug/recreate-doctors", async (req, res) => {
-  try {
-    await db.execute(sql`DROP TABLE IF EXISTS doctors CASCADE;`);
-    await db.execute(sql`
-      CREATE TABLE doctors (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        specialty TEXT NOT NULL,
-        wilaya TEXT NOT NULL,
-        address TEXT NOT NULL,
-        phone TEXT,
-        rating REAL NOT NULL DEFAULT 4.0,
-        review_count INTEGER NOT NULL DEFAULT 0,
-        available_days TEXT NOT NULL,
-        available_hours TEXT NOT NULL DEFAULT '08:00 - 17:00',
-        consultation_fee INTEGER NOT NULL,
-        image_url TEXT,
-        is_online_consultation BOOLEAN NOT NULL DEFAULT FALSE,
-        lat REAL,
-        lng REAL
-      );
-    `);
-    res.json({ message: "Doctors table recreated successfully" });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 router.post("/auth/register", async (req, res): Promise<void> => {
   try {
     const parsed = RegisterBody.safeParse(req.body);
@@ -61,9 +32,10 @@ router.post("/auth/register", async (req, res): Promise<void> => {
         .values({ name, email, passwordHash, phone, wilaya, role })
         .returning();
 
-      if (role === "doctor" && parsed.data.doctorProfile) {
-        const dp = parsed.data.doctorProfile;
+      if (role === "doctor") {
+        const dp = parsed.data.doctorProfile!;
         await tx.insert(doctorsTable).values({
+          userId: u.id,
           name,
           specialty: dp.specialty,
           wilaya: wilaya ?? "Algiers",
@@ -76,9 +48,10 @@ router.post("/auth/register", async (req, res): Promise<void> => {
         });
       }
 
-      if (role === "pharmacy" && parsed.data.pharmacyProfile) {
-        const pp = parsed.data.pharmacyProfile;
+      if (role === "pharmacy") {
+        const pp = parsed.data.pharmacyProfile!;
         await tx.insert(pharmaciesTable).values({
+          userId: u.id,
           name,
           wilaya: wilaya ?? "Algiers",
           address: pp.address,
@@ -102,13 +75,8 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     });
   } catch (err: any) {
     logger.error({ err, body: req.body }, "Registration error");
-    res.status(500).json({ 
-      error: err.message || "Internal server error",
-      detail: err.detail || null,
-      code: err.code || null,
-      constraint: err.constraint || null,
-      fullError: JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err)))
-    });
+    const message = err.detail ? `${err.message} - ${err.detail}` : err.message;
+    res.status(500).json({ error: message || "Internal server error" });
   }
 });
 

@@ -20,8 +20,8 @@ router.get("/doctors", async (req, res): Promise<void> => {
   }
 
   const doctors = conditions.length > 0
-    ? await query.where(and(...conditions))
-    : await query;
+    ? await db.select().from(doctorsTable).where(and(...conditions))
+    : await db.select().from(doctorsTable);
 
   res.json(doctors);
 });

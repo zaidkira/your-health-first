@@ -1,9 +1,10 @@
-import { pgTable, text, serial, boolean, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, real, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const pharmaciesTable = pgTable("pharmacies", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
   name: text("name").notNull(),
   wilaya: text("wilaya").notNull(),
   address: text("address").notNull(),
