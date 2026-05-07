@@ -16,15 +16,16 @@ router.get("/auth/debug/fix-db", async (req, res) => {
     try {
       await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
       steps.push("Checked user_id in doctors");
-    } catch (e) { steps.push("Error doctors column: " + (e as any).message); }
+    } catch (e: any) { steps.push("Error doctors column: " + e.message); }
     
     try {
       await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
       steps.push("Checked user_id in pharmacies");
-    } catch (e) { steps.push("Error pharmacies column: " + (e as any).message); }
+    } catch (e: any) { steps.push("Error pharmacies column: " + e.message); }
     
     // 2. Ensure shared_records table exists
     try {
+      // Try a different name if this fails consistently
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS shared_records (
           id SERIAL PRIMARY KEY,
@@ -37,7 +38,10 @@ router.get("/auth/debug/fix-db", async (req, res) => {
         );
       `);
       steps.push("Checked shared_records table");
-    } catch (e) { steps.push("Error shared_records table: " + (e as any).message); }
+    } catch (e: any) { 
+      logger.error({ e }, "Shared records table creation error");
+      steps.push("Error shared_records table: " + e.message + " (Detail: " + (e.detail || "none") + ")"); 
+    }
     
     // 3. Link existing profiles by name as a fallback
     try {
@@ -48,7 +52,7 @@ router.get("/auth/debug/fix-db", async (req, res) => {
         WHERE d.name = u.name AND d.user_id IS NULL;
       `);
       steps.push("Linked doctors by name");
-    } catch (e) { steps.push("Error link doctors: " + (e as any).message); }
+    } catch (e: any) { steps.push("Error link doctors: " + e.message); }
 
     try {
       await db.execute(sql`
@@ -58,7 +62,7 @@ router.get("/auth/debug/fix-db", async (req, res) => {
         WHERE p.name = u.name AND p.user_id IS NULL;
       `);
       steps.push("Linked pharmacies by name");
-    } catch (e) { steps.push("Error link pharmacies: " + (e as any).message); }
+    } catch (e: any) { steps.push("Error link pharmacies: " + e.message); }
 
     res.json({ message: "Database schema fix process completed", steps });
   } catch (err: any) {
