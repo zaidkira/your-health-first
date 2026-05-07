@@ -1,9 +1,53 @@
 import { Router, type IRouter } from "express";
 import { eq, and, or } from "drizzle-orm";
-import { db, connectionsTable, usersTable } from "@workspace/db";
+import { db, connectionsTable, usersTable, medicationsTable, chronicConditionsTable } from "@workspace/db";
 import { requireAuth, getUserId } from "../lib/auth";
 
 const router: IRouter = Router();
+
+// Helper: verify two users have an accepted connection
+async function hasAcceptedConnection(userA: number, userB: number): Promise<boolean> {
+  const [conn] = await db.select().from(connectionsTable).where(
+    and(
+      eq(connectionsTable.status, "accepted"),
+      or(
+        and(eq(connectionsTable.senderId, userA), eq(connectionsTable.receiverId, userB)),
+        and(eq(connectionsTable.senderId, userB), eq(connectionsTable.receiverId, userA))
+      )
+    )
+  );
+  return !!conn;
+}
+
+// GET /connections/:userId/medications – see a circle member's medications
+router.get("/connections/:userId/medications", requireAuth, async (req, res): Promise<void> => {
+  const myId = getUserId(req);
+  const targetId = parseInt(req.params.userId as string);
+  if (isNaN(targetId)) { res.status(400).json({ error: "Invalid user id" }); return; }
+
+  if (!(await hasAcceptedConnection(myId, targetId))) {
+    res.status(403).json({ error: "You are not connected with this user" });
+    return;
+  }
+
+  const meds = await db.select().from(medicationsTable).where(eq(medicationsTable.userId, targetId));
+  res.json(meds.map(m => ({ ...m, createdAt: m.createdAt.toISOString(), updatedAt: m.updatedAt.toISOString() })));
+});
+
+// GET /connections/:userId/conditions – see a circle member's conditions
+router.get("/connections/:userId/conditions", requireAuth, async (req, res): Promise<void> => {
+  const myId = getUserId(req);
+  const targetId = parseInt(req.params.userId as string);
+  if (isNaN(targetId)) { res.status(400).json({ error: "Invalid user id" }); return; }
+
+  if (!(await hasAcceptedConnection(myId, targetId))) {
+    res.status(403).json({ error: "You are not connected with this user" });
+    return;
+  }
+
+  const conditions = await db.select().from(chronicConditionsTable).where(eq(chronicConditionsTable.userId, targetId));
+  res.json(conditions.map(c => ({ ...c, createdAt: c.createdAt.toISOString() })));
+});
 
 router.get("/connections", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);

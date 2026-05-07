@@ -8,11 +8,11 @@ import {
   useDeleteConnectionsId, getGetConnectionsQueryKey,
   type Connection
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { 
   Users, Plus, Pencil, Trash2, Heart, Tag, Phone, AlertTriangle, X, 
   ChevronDown, ChevronUp, UserPlus, Check, UserMinus, Search, Clock,
-  UserCheck
+  UserCheck, Pill, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -251,6 +251,94 @@ function MemberCard({ member, onEdit, onDelete }: {
 }
 
 // ──────────────────────────────────────────────────────────────
+// Health data panel for a connected circle member
+// ──────────────────────────────────────────────────────────────
+function CircleMemberHealthData({ userId, name }: { userId: number; name: string }) {
+  const { data: meds, isLoading: medsLoading } = useQuery({
+    queryKey: ["circle-member-meds", userId],
+    queryFn: async () => {
+      const res = await fetch(`/api/connections/${userId}/medications`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res.ok) throw new Error("Failed to load");
+      return res.json();
+    },
+  });
+  const { data: conditions, isLoading: condLoading } = useQuery({
+    queryKey: ["circle-member-conditions", userId],
+    queryFn: async () => {
+      const res = await fetch(`/api/connections/${userId}/conditions`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res.ok) throw new Error("Failed to load");
+      return res.json();
+    },
+  });
+
+  const isLoading = medsLoading || condLoading;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-border/60 space-y-3">
+      {isLoading ? (
+        <p className="text-xs text-muted-foreground">Loading health data...</p>
+      ) : (
+        <>
+          {/* Medications */}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1.5 flex items-center gap-1">
+              <Pill className="h-3 w-3" /> Medications
+            </p>
+            {(meds ?? []).length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No medications recorded.</p>
+            ) : (
+              <div className="space-y-1">
+                {(meds ?? []).map((m: any) => (
+                  <div key={m.id} className="flex items-center justify-between px-2 py-1.5 bg-blue-50 rounded-md border border-blue-100">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">{m.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{m.dosage} · {m.frequency}</p>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${m.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {m.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Conditions */}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600 mb-1.5 flex items-center gap-1">
+              <Activity className="h-3 w-3" /> Conditions
+            </p>
+            {(conditions ?? []).length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No conditions recorded.</p>
+            ) : (
+              <div className="space-y-1">
+                {(conditions ?? []).map((c: any) => (
+                  <div key={c.id} className="flex items-center justify-between px-2 py-1.5 bg-orange-50 rounded-md border border-orange-100">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">{c.name}</p>
+                      {c.diagnosedYear && <p className="text-[10px] text-muted-foreground">Since {c.diagnosedYear}</p>}
+                    </div>
+                    {c.severity && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700 capitalize">
+                        {c.severity}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
 // Health Circle (Connections) Tab
 // ──────────────────────────────────────────────────────────────
 function HealthCircle() {
@@ -263,6 +351,7 @@ function HealthCircle() {
   const removeConnection = useDeleteConnectionsId();
   
   const [email, setEmail] = useState("");
+  const [expandedHealth, setExpandedHealth] = useState<number | null>(null);
 
   function handleSendRequest(e: React.FormEvent) {
     e.preventDefault();
@@ -370,21 +459,34 @@ function HealthCircle() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {active.map((c: Connection) => {
               const otherName = c.senderId === user?.id ? c.receiverName : c.senderName;
+              const otherId = c.senderId === user?.id ? c.receiverId : c.senderId;
+              const isExpanded = expandedHealth === c.id;
               return (
                 <Card key={c.id} className="hover:shadow-sm transition-shadow">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary">{otherName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-sm">{otherName}</p>
-                        <Badge variant="outline" className="text-[10px] h-4">Connected</Badge>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-primary/10 text-primary">{otherName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-sm">{otherName}</p>
+                          <Badge variant="outline" className="text-[10px] h-4">Connected</Badge>
+                        </div>
                       </div>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleRemove(c.id)}>
+                        <UserMinus className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleRemove(c.id)}>
-                      <UserMinus className="h-4 w-4" />
-                    </Button>
+                    <button
+                      className="mt-3 flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                      onClick={() => setExpandedHealth(isExpanded ? null : c.id)}
+                    >
+                      <Activity className="h-3.5 w-3.5" />
+                      {isExpanded ? "Hide health data" : "View health data"}
+                      {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    </button>
+                    {isExpanded && <CircleMemberHealthData userId={otherId} name={otherName ?? ""} />}
                   </CardContent>
                 </Card>
               );
@@ -424,7 +526,6 @@ function HealthCircle() {
     </div>
   );
 }
-
 // ──────────────────────────────────────────────────────────────
 // Main Family page
 // ──────────────────────────────────────────────────────────────
@@ -600,4 +701,3 @@ export default function Family() {
     </div>
   );
 }
-

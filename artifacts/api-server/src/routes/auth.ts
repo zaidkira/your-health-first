@@ -12,107 +12,54 @@ const router: IRouter = Router();
 router.get("/auth/debug/fix-db", async (req, res) => {
   const steps: string[] = [];
   try {
-    // 1. Ensure user_id column exists in profiles
-    try {
-      await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
-      steps.push("Checked user_id in doctors");
-    } catch (e: any) { steps.push("Error doctors column: " + e.message); }
+    await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+    steps.push("Added user_id to doctors");
     
-    try {
-      await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
-      steps.push("Checked user_id in pharmacies");
-    } catch (e: any) { steps.push("Error pharmacies column: " + e.message); }
+    await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+    steps.push("Added user_id to pharmacies");
     
-    // 2. Ensure record_shares table exists using most compatible syntax
+    // 2. Ensure record_shares table exists
     try {
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS record_shares (
           id SERIAL PRIMARY KEY,
-          record_id integer NOT NULL,
-          sender_id integer NOT NULL,
-          doctor_id integer NOT NULL,
-          message text,
-          doctor_reply text,
-          sent_at timestamptz NOT NULL DEFAULT now()
+          record_id INTEGER NOT NULL,
+          sender_id INTEGER NOT NULL,
+          doctor_id INTEGER NOT NULL,
+          message TEXT,
+          doctor_reply TEXT,
+          sent_at TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT NOW()
         );
       `);
       steps.push("Checked record_shares table");
     } catch (e: any) { 
-      try {
-        await db.execute(sql`
-          CREATE TABLE record_shares (
-            id serial PRIMARY KEY,
-            record_id integer NOT NULL,
-            sender_id integer NOT NULL,
-            doctor_id integer NOT NULL,
-            message text,
-            doctor_reply text,
-            sent_at timestamp NOT NULL DEFAULT now()
-          );
-        `);
-        steps.push("Checked record_shares table (fallback syntax)");
-      } catch (e2: any) {
-        steps.push("Error record_shares table: " + e2.message);
-      }
-    }
-
-    // 3. Ensure connections table exists
-    try {
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS connections (
-          id SERIAL PRIMARY KEY,
-          sender_id INTEGER NOT NULL,
-          receiver_id INTEGER NOT NULL,
-          status TEXT NOT NULL DEFAULT 'pending',
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );
-      `);
-      steps.push("Checked connections table");
-    } catch (e: any) { 
-      try {
-        await db.execute(sql`
-          CREATE TABLE connections (
-            id serial PRIMARY KEY,
-            sender_id integer NOT NULL,
-            receiver_id integer NOT NULL,
-            status text NOT NULL DEFAULT 'pending',
-            created_at timestamp NOT NULL DEFAULT now(),
-            updated_at timestamp NOT NULL DEFAULT now()
-          );
-        `);
-        steps.push("Checked connections table (fallback syntax)");
-      } catch (e2: any) {
-        steps.push("Error connections table: " + e2.message);
-      }
+      steps.push("Error record_shares table: " + e.message); 
     }
     
-    // 4. Link existing profiles by name as a fallback
-    try {
-      await db.execute(sql`
-        UPDATE doctors d 
-        SET user_id = u.id 
-        FROM users u 
-        WHERE d.name = u.name AND d.user_id IS NULL;
-      `);
-      steps.push("Linked doctors by name");
-    } catch (e: any) { steps.push("Error link doctors: " + e.message); }
+    // Try to link existing profiles by name as a fallback
+    await db.execute(sql`
+      UPDATE doctors d 
+      SET user_id = u.id 
+      FROM users u 
+      WHERE d.name = u.name AND d.user_id IS NULL;
+    `);
+    steps.push("Linked doctors by name");
 
-    try {
-      await db.execute(sql`
-        UPDATE pharmacies p 
-        SET user_id = u.id 
-        FROM users u 
-        WHERE p.name = u.name AND p.user_id IS NULL;
-      `);
-      steps.push("Linked pharmacies by name");
-    } catch (e: any) { steps.push("Error link pharmacies: " + e.message); }
+    await db.execute(sql`
+      UPDATE pharmacies p 
+      SET user_id = u.id 
+      FROM users u 
+      WHERE p.name = u.name AND p.user_id IS NULL;
+    `);
+    steps.push("Linked pharmacies by name");
 
-    res.json({ message: "Database schema fix process completed", steps });
+    res.json({ message: "Database schema fixed successfully", steps });
   } catch (err: any) {
-    logger.error({ err, steps }, "DB fix overall error");
+    logger.error({ err, steps }, "DB fix error");
     res.status(500).json({ 
       error: err.message, 
+      detail: err.detail,
+      hint: err.hint,
       steps 
     });
   }
@@ -311,7 +258,7 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
 
   if (user.role === "doctor") {
     const doctors = await db.select().from(doctorsTable)
-      .where(eq(doctorsTable.userId, userId));
+      .where(eq(doctorsTable.name, user.name));
     const doc = doctors[0];
     if (doc) {
       response.doctorProfile = {
@@ -329,7 +276,7 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
 
   if (user.role === "pharmacy") {
     const pharmacies = await db.select().from(pharmaciesTable)
-      .where(eq(pharmaciesTable.userId, userId));
+      .where(eq(pharmaciesTable.name, user.name));
     const ph = pharmacies[0];
     if (ph) {
       response.pharmacyProfile = {
