@@ -47,6 +47,7 @@ import {
   ShieldCheck,
   Users,
   Pencil,
+  Trash2,
   Loader2,
   Search,
 } from "lucide-react";
@@ -163,6 +164,26 @@ function useAdminUpdateUser() {
         throw new Error(err.error || "Update failed");
       }
       return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+}
+
+function useAdminDeleteUser() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Delete failed");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -461,12 +482,31 @@ function EditDialog({
 }
 
 export default function AdminUsers() {
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useAdminUsers();
+  const deleteMutation = useAdminDeleteUser();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
-  if (user?.role !== "admin") {
+  const handleDelete = (id: number, name: string) => {
+    if (!confirm(`Are you sure you want to delete user "${name}"? This action cannot be undone.`)) return;
+    
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        toast({ title: "User deleted", description: `User ${name} has been removed.` });
+      },
+      onError: (err: any) => {
+        toast({ 
+          title: "Delete failed", 
+          description: err.message,
+          variant: "destructive" 
+        });
+      }
+    });
+  };
+
+  if (currentUser?.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center gap-3">
         <ShieldCheck className="h-12 w-12 text-muted-foreground" />
@@ -548,14 +588,28 @@ export default function AdminUsers() {
                         {new Date(u.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingUser(u)}
-                          title="Edit user"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingUser(u)}
+                            title="Edit user"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          {u.id !== currentUser?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => handleDelete(u.id, u.name)}
+                              disabled={deleteMutation.isPending}
+                              title="Delete user"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

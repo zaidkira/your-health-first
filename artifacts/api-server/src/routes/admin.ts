@@ -188,4 +188,35 @@ router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Prom
   res.json(response);
 });
 
+router.delete("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Promise<void> => {
+  const targetId = parseInt(String(req.params.id), 10);
+  if (isNaN(targetId)) {
+    res.status(400).json({ error: "Invalid user id" });
+    return;
+  }
+
+  // Optional: prevent self-deletion
+  const currentUserId = getUserId(req);
+  if (targetId === currentUserId) {
+    res.status(400).json({ error: "Cannot delete yourself" });
+    return;
+  }
+
+  const [existing] = await db.select().from(usersTable).where(eq(usersTable.id, targetId));
+  if (!existing) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  // Delete associated doctor/pharmacy profile if exists (linked by name in current schema)
+  if (existing.role === "doctor") {
+    await db.delete(doctorsTable).where(eq(doctorsTable.name, existing.name));
+  } else if (existing.role === "pharmacy") {
+    await db.delete(pharmaciesTable).where(eq(pharmaciesTable.name, existing.name));
+  }
+
+  await db.delete(usersTable).where(eq(usersTable.id, targetId));
+  res.sendStatus(204);
+});
+
 export default router;
