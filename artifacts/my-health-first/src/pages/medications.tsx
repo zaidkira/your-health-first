@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
 import {
   useListMedications,
   getListMedicationsQueryKey,
@@ -9,8 +10,9 @@ import {
   getGetTodaysMedicationsQueryKey,
   useMarkMedicationTaken,
   useListFamilyMembers,
+  useGetConnections,
 } from "@workspace/api-client-react";
-import { Pill, Plus, Check, Calendar, Clock, Trash2, Users, UserRound } from "lucide-react";
+import { Pill, Plus, Check, Calendar, Clock, Trash2, Users, UserRound, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +58,8 @@ export default function Medications() {
   const { data: medications, isLoading: loadingMeds } = useListMedications();
   const { data: todaysMeds, isLoading: loadingTodays } = useGetTodaysMedications();
   const { data: familyMembers } = useListFamilyMembers();
+  const { data: connections } = useGetConnections();
+  const { user } = useAuth();
 
   const createMutation = useCreateMedication();
   const deleteMutation = useDeleteMedication();
@@ -416,11 +420,34 @@ export default function Medications() {
             );
           })}
 
-          {(familyMembers ?? []).length === 0 && familyMedMap.size === 0 && (
+          {/* Each circle member's medications (Accepted connections) */}
+          {(connections ?? []).filter((c: any) => c.status === "accepted").map((c: any) => {
+            const otherName = c.senderId === user?.id ? c.receiverName : c.senderName;
+            const otherId = c.senderId === user?.id ? c.receiverId : c.senderId;
+            return (
+              <div key={c.id}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold text-sm">
+                    {otherName?.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{otherName}</p>
+                      <Badge variant="outline" className="text-[10px] h-4 bg-blue-50 text-blue-700 border-blue-200">Circle</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Connected Member</p>
+                  </div>
+                </div>
+                <CircleMemberMeds userId={otherId} name={otherName ?? ""} />
+              </div>
+            );
+          })}
+
+          {(familyMembers ?? []).length === 0 && (connections ?? []).filter((c: any) => c.status === "accepted").length === 0 && (
             <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
               <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p className="font-medium">No family members yet</p>
-              <p className="text-sm mt-1">Add family members from the Family page, then assign medications to them.</p>
+              <p className="font-medium">No family or circle members yet</p>
+              <p className="text-sm mt-1">Connect with family members or add managed profiles to see them here.</p>
             </div>
           )}
         </TabsContent>
@@ -448,5 +475,52 @@ function FamilyMedCard({ med, onDelete }: { med: any; onDelete: (id: number) => 
         {med.notes && <p className="text-xs text-muted-foreground italic">{med.notes}</p>}
       </CardContent>
     </Card>
+  );
+}
+
+function CircleMemberMeds({ userId, name }: { userId: number; name: string }) {
+  const { data: meds, isLoading } = useQuery({
+    queryKey: ["circle-member-meds", userId],
+    queryFn: async () => {
+      const res = await fetch(`/api/connections/${userId}/medications`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res.ok) throw new Error("Failed to load");
+      return res.json();
+    },
+  });
+
+  return (
+    <div className="space-y-3">
+      {isLoading ? (
+        <p className="text-xs text-muted-foreground">Loading medications...</p>
+      ) : (meds ?? []).length === 0 ? (
+        <div className="text-sm text-muted-foreground bg-blue-50/50 rounded-lg p-4 border border-blue-100/50">
+          No medications shared by {name}.
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(meds ?? []).map((med: any) => (
+            <Card key={med.id} className="border-blue-100 bg-blue-50/30">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate text-blue-900">{med.name}</p>
+                    <p className="text-xs text-blue-700 font-medium">{med.dosage} · {med.frequency}</p>
+                  </div>
+                  <Badge variant="outline" className={`text-[10px] h-4 ${med.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500"}`}>
+                    {med.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-blue-600/70">
+                  <Clock className="h-3 w-3" />{med.times.split("|").join(", ")}
+                </div>
+                {med.notes && <p className="text-xs text-blue-800/60 italic leading-relaxed">"{med.notes}"</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
