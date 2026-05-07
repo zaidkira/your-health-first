@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -431,16 +432,14 @@ export default function Profile() {
                 )} />
 
                 <div className="space-y-3">
-                  <FormLabel>Clinic Location</FormLabel>
-                  <FormControl>
-                    <MapLocationPicker 
-                      value={form.watch("doctorLat") && form.watch("doctorLng") ? { lat: form.watch("doctorLat")!, lng: form.watch("doctorLng")! } : undefined}
-                      onChange={(loc) => {
-                        form.setValue("doctorLat", loc.lat);
-                        form.setValue("doctorLng", loc.lng);
-                      }}
-                    />
-                  </FormControl>
+                  <Label>Clinic Location</Label>
+                  <MapLocationPicker 
+                    value={form.watch("doctorLat") && form.watch("doctorLng") ? { lat: form.watch("doctorLat")!, lng: form.watch("doctorLng")! } : undefined}
+                    onChange={(loc) => {
+                      form.setValue("doctorLat", loc.lat);
+                      form.setValue("doctorLng", loc.lng);
+                    }}
+                  />
                   <p className="text-xs text-muted-foreground">Click on the map to set your clinic's precise location for patients.</p>
                 </div>
               </CardContent>
@@ -529,16 +528,14 @@ export default function Profile() {
                 )}
 
                 <div className="space-y-3 pt-2">
-                  <FormLabel>Pharmacy Location</FormLabel>
-                  <FormControl>
-                    <MapLocationPicker 
-                      value={form.watch("pharmacyLat") && form.watch("pharmacyLng") ? { lat: form.watch("pharmacyLat")!, lng: form.watch("pharmacyLng")! } : undefined}
-                      onChange={(loc) => {
-                        form.setValue("pharmacyLat", loc.lat);
-                        form.setValue("pharmacyLng", loc.lng);
-                      }}
-                    />
-                  </FormControl>
+                  <Label>Pharmacy Location</Label>
+                  <MapLocationPicker 
+                    value={form.watch("pharmacyLat") && form.watch("pharmacyLng") ? { lat: form.watch("pharmacyLat")!, lng: form.watch("pharmacyLng")! } : undefined}
+                    onChange={(loc) => {
+                      form.setValue("pharmacyLat", loc.lat);
+                      form.setValue("pharmacyLng", loc.lng);
+                    }}
+                  />
                   <p className="text-xs text-muted-foreground">Click on the map to set your pharmacy's location so patients can find you.</p>
                 </div>
               </CardContent>
