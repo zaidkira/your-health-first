@@ -36,10 +36,9 @@ router.get("/auth/debug/fix-db", async (req, res) => {
           sent_at timestamptz NOT NULL DEFAULT now()
         );
       `);
-      steps.push("Checked record_shares table (standard syntax)");
+      steps.push("Checked record_shares table");
     } catch (e: any) { 
       try {
-        // Try fallback syntax for older postgres or restricted envs
         await db.execute(sql`
           CREATE TABLE record_shares (
             id serial PRIMARY KEY,
@@ -56,8 +55,39 @@ router.get("/auth/debug/fix-db", async (req, res) => {
         steps.push("Error record_shares table: " + e2.message);
       }
     }
+
+    // 3. Ensure connections table exists
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS connections (
+          id SERIAL PRIMARY KEY,
+          sender_id INTEGER NOT NULL,
+          receiver_id INTEGER NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      steps.push("Checked connections table");
+    } catch (e: any) { 
+      try {
+        await db.execute(sql`
+          CREATE TABLE connections (
+            id serial PRIMARY KEY,
+            sender_id integer NOT NULL,
+            receiver_id integer NOT NULL,
+            status text NOT NULL DEFAULT 'pending',
+            created_at timestamp NOT NULL DEFAULT now(),
+            updated_at timestamp NOT NULL DEFAULT now()
+          );
+        `);
+        steps.push("Checked connections table (fallback syntax)");
+      } catch (e2: any) {
+        steps.push("Error connections table: " + e2.message);
+      }
+    }
     
-    // 3. Link existing profiles by name as a fallback
+    // 4. Link existing profiles by name as a fallback
     try {
       await db.execute(sql`
         UPDATE doctors d 
