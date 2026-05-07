@@ -74,8 +74,13 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     });
   } catch (err: any) {
     logger.error({ err, body: req.body }, "Registration error");
-    const message = err.detail ? `${err.message} - ${err.detail}` : err.message;
-    res.status(500).json({ error: message || "Internal server error" });
+    res.status(500).json({ 
+      error: err.message || "Internal server error",
+      detail: err.detail || null,
+      code: err.code || null,
+      constraint: err.constraint || null,
+      fullError: JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err)))
+    });
   }
 });
 
