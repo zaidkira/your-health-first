@@ -14,11 +14,11 @@
     "prettier": "^3.8.1"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@swc/core",
-      "esbuild",
-      "msw",
-      "unrs-resolver"
-    ]
+    "allowBuilds": {
+      "esbuild": true,
+      "@swc/core": true,
+      "msw": true,
+      "unrs-resolver": true
+    }
   }
 }
