@@ -148,9 +148,10 @@ export default function Register() {
         setLocation("/dashboard");
       },
       onError: (error: any) => {
+        const detail = error.response?.data?.detail || error.response?.data?.error;
         toast({
           title: "Registration Failed",
-          description: error.message || "Could not create account",
+          description: detail || error.message || "Could not create account",
           variant: "destructive",
         });
       }
