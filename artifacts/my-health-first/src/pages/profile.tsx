@@ -101,7 +101,7 @@ const profileSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function Profile() {
-  const { user, login: setAuth } = useAuth();
+  const { user, token, login: setAuth } = useAuth();
   const { toast } = useToast();
   const { data: profile, isLoading } = useGetProfile();
   const updateMutation = useUpdateProfile();
@@ -195,8 +195,7 @@ export default function Profile() {
     updateMutation.mutate({ data: payload }, {
       onSuccess: (res) => {
         // Refresh the auth user data (name etc) in context
-        const token = localStorage.getItem("auth_token") ?? "";
-        setAuth(token, {
+        setAuth(token ?? "", {
           id: res.id, name: res.name, email: res.email,
           phone: res.phone ?? null, wilaya: res.wilaya ?? null,
           role: res.role, createdAt: res.createdAt,
