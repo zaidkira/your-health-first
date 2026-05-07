@@ -1014,6 +1014,10 @@ components:
           enum: [patient, doctor, pharmacy, admin]
         createdAt:
           type: string
+        doctorProfile:
+          $ref: "#/components/schemas/DoctorProfile"
+        pharmacyProfile:
+          $ref: "#/components/schemas/PharmacyProfile"
       required:
         - id
         - name

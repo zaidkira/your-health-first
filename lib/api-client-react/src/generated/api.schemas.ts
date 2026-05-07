@@ -119,6 +119,8 @@ export interface User {
   bloodType?: string | null;
   role: UserRole;
   createdAt: string;
+  doctorProfile?: DoctorProfile;
+  pharmacyProfile?: PharmacyProfile;
 }
 
 export interface AuthResponse {

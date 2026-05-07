@@ -60,15 +60,50 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   }
 
   const token = createToken(user.id);
+  const fullUser = await getFullUser(user);
   res.status(201).json({
     token,
-    user: {
-      id: user.id, name: user.name, email: user.email,
-      phone: user.phone ?? null, wilaya: user.wilaya ?? null,
-      role: user.role, createdAt: user.createdAt.toISOString(),
-    },
+    user: fullUser,
   });
 });
+
+async function getFullUser(user: any) {
+  const response: any = {
+    id: user.id, name: user.name, email: user.email,
+    phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+    bloodType: user.bloodType ?? null,
+    role: user.role, createdAt: user.createdAt.toISOString(),
+  };
+
+  if (user.role === "doctor") {
+    const [doc] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    if (doc) {
+      response.doctorProfile = {
+        specialty: doc.specialty,
+        address: doc.address,
+        availableDays: doc.availableDays,
+        availableHours: doc.availableHours,
+        consultationFee: doc.consultationFee,
+        isOnlineConsultation: doc.isOnlineConsultation,
+        lat: doc.lat,
+        lng: doc.lng,
+      };
+    }
+  } else if (user.role === "pharmacy") {
+    const [ph] = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+    if (ph) {
+      response.pharmacyProfile = {
+        address: ph.address,
+        is24h: ph.is24h,
+        openTime: ph.openTime,
+        closeTime: ph.closeTime,
+        lat: ph.lat,
+        lng: ph.lng,
+      };
+    }
+  }
+  return response;
+}
 
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
@@ -85,13 +120,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   }
 
   const token = createToken(user.id);
+  const fullUser = await getFullUser(user);
   res.json({
     token,
-    user: {
-      id: user.id, name: user.name, email: user.email,
-      phone: user.phone ?? null, wilaya: user.wilaya ?? null,
-      role: user.role, createdAt: user.createdAt.toISOString(),
-    },
+    user: fullUser,
   });
 });
 
@@ -99,12 +131,8 @@ router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) { res.status(401).json({ error: "User not found" }); return; }
-  res.json({
-    id: user.id, name: user.name, email: user.email,
-    phone: user.phone ?? null, wilaya: user.wilaya ?? null,
-    bloodType: user.bloodType ?? null,
-    role: user.role, createdAt: user.createdAt.toISOString(),
-  });
+  const fullUser = await getFullUser(user);
+  res.json(fullUser);
 });
 
 // GET /auth/profile – full profile including doctor/pharmacy data

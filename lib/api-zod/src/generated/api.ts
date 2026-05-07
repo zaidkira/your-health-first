@@ -72,6 +72,28 @@ export const LoginResponse = zod.object({
     bloodType: zod.string().nullish(),
     role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
     createdAt: zod.string(),
+    doctorProfile: zod
+      .object({
+        specialty: zod.string(),
+        address: zod.string(),
+        availableDays: zod.string(),
+        availableHours: zod.string(),
+        consultationFee: zod.number(),
+        isOnlineConsultation: zod.boolean().optional(),
+        lat: zod.number().nullish(),
+        lng: zod.number().nullish(),
+      })
+      .optional(),
+    pharmacyProfile: zod
+      .object({
+        address: zod.string(),
+        is24h: zod.boolean().optional(),
+        openTime: zod.string().optional(),
+        closeTime: zod.string().optional(),
+        lat: zod.number().nullish(),
+        lng: zod.number().nullish(),
+      })
+      .optional(),
   }),
 });
 
@@ -87,6 +109,28 @@ export const GetMeResponse = zod.object({
   bloodType: zod.string().nullish(),
   role: zod.enum(["patient", "doctor", "pharmacy", "admin"]),
   createdAt: zod.string(),
+  doctorProfile: zod
+    .object({
+      specialty: zod.string(),
+      address: zod.string(),
+      availableDays: zod.string(),
+      availableHours: zod.string(),
+      consultationFee: zod.number(),
+      isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
+    })
+    .optional(),
+  pharmacyProfile: zod
+    .object({
+      address: zod.string(),
+      is24h: zod.boolean().optional(),
+      openTime: zod.string().optional(),
+      closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
+    })
+    .optional(),
 });
 
 /**
