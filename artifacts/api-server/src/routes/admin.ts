@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable, doctorsTable, pharmaciesTable } from "@workspace/db";
 import { requireAuth, getUserId } from "../lib/auth";
+import { logger } from "../lib/logger";
 import { z } from "zod";
 
 const router: IRouter = Router();
@@ -17,50 +18,63 @@ async function requireAdmin(req: any, res: any, next: any): Promise<void> {
 }
 
 async function buildUserResponse(user: typeof usersTable.$inferSelect) {
-  const response: any = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    phone: user.phone ?? null,
-    wilaya: user.wilaya ?? null,
-    bloodType: user.bloodType ?? null,
-    role: user.role,
-    createdAt: user.createdAt.toISOString(),
-  };
+  try {
+    const response: any = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone ?? null,
+      wilaya: user.wilaya ?? null,
+      bloodType: user.bloodType ?? null,
+      role: user.role,
+      createdAt: user.createdAt.toISOString(),
+    };
 
-  if (user.role === "doctor") {
-    const docs = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
-    const doc = docs[0];
-    if (doc) {
-      response.doctorProfile = {
-        specialty: doc.specialty,
-        address: doc.address,
-        availableDays: doc.availableDays,
-        availableHours: doc.availableHours,
-        consultationFee: doc.consultationFee,
-        isOnlineConsultation: doc.isOnlineConsultation,
-      };
+    if (user.role === "doctor") {
+      const docs = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+      const doc = docs[0];
+      if (doc) {
+        response.doctorProfile = {
+          specialty: doc.specialty,
+          address: doc.address,
+          availableDays: doc.availableDays,
+          availableHours: doc.availableHours,
+          consultationFee: doc.consultationFee,
+          isOnlineConsultation: doc.isOnlineConsultation,
+        };
+      }
     }
-  }
 
-  if (user.role === "pharmacy") {
-    const phs = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
-    const ph = phs[0];
-    if (ph) {
-      response.pharmacyProfile = {
-        address: ph.address,
-        is24h: ph.is24h,
-        openTime: ph.openTime,
-        closeTime: ph.closeTime,
-      };
+    if (user.role === "pharmacy") {
+      const phs = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+      const ph = phs[0];
+      if (ph) {
+        response.pharmacyProfile = {
+          address: ph.address,
+          is24h: ph.is24h,
+          openTime: ph.openTime,
+          closeTime: ph.closeTime,
+        };
+      }
     }
-  }
 
-  return response;
+    return response;
+  } catch (err) {
+    logger.error({ err, userId: user.id }, "Error building user response");
+    // Return basic info if details fail
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt.toISOString(),
+    };
+  }
 }
 
 router.get("/admin/users", requireAuth, requireAdmin, async (req, res): Promise<void> => {
   const users = await db.select().from(usersTable).orderBy(usersTable.createdAt);
+  logger.info({ count: users.length, requesterId: getUserId(req) }, "Admin fetching user list");
   const result = await Promise.all(users.map(buildUserResponse));
   res.json(result);
 });
