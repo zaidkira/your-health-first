@@ -4,8 +4,9 @@ import {
   useDeleteFamilyMember, getListFamilyMembersQueryKey,
   useListEmergencyContacts, useCreateEmergencyContact, useUpdateEmergencyContact,
   useDeleteEmergencyContact, getListEmergencyContactsQueryKey,
-  useListConnections, useSendConnectionRequest, useRespondToConnectionRequest,
-  useRemoveConnection, getListConnectionsQueryKey
+  useGetConnections, usePostConnections, usePatchConnectionsId,
+  useDeleteConnectionsId, getGetConnectionsQueryKey,
+  type Connection
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
@@ -256,10 +257,10 @@ function HealthCircle() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data: connections, isLoading } = useListConnections();
-  const sendRequest = useSendConnectionRequest();
-  const respondRequest = useRespondToConnectionRequest();
-  const removeConnection = useRemoveConnection();
+  const { data: connections, isLoading } = useGetConnections();
+  const sendRequest = usePostConnections();
+  const respondRequest = usePatchConnectionsId();
+  const removeConnection = useDeleteConnectionsId();
   
   const [email, setEmail] = useState("");
 
@@ -269,7 +270,7 @@ function HealthCircle() {
       { data: { email } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetConnectionsQueryKey() });
           setEmail("");
           toast({ title: "Request sent!" });
         },
@@ -283,7 +284,7 @@ function HealthCircle() {
       { id, data: { status } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetConnectionsQueryKey() });
           toast({ title: status === "accepted" ? "Request accepted" : "Request rejected" });
         },
       }
@@ -296,16 +297,16 @@ function HealthCircle() {
       { id },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetConnectionsQueryKey() });
           toast({ title: "Connection removed" });
         },
       }
     );
   }
 
-  const pendingReceived = connections?.filter(c => c.receiverId === user?.id && c.status === "pending");
-  const pendingSent = connections?.filter(c => c.senderId === user?.id && c.status === "pending");
-  const active = connections?.filter(c => c.status === "accepted");
+  const pendingReceived = connections?.filter((c: Connection) => c.receiverId === user?.id && c.status === "pending");
+  const pendingSent = connections?.filter((c: Connection) => c.senderId === user?.id && c.status === "pending");
+  const active = connections?.filter((c: Connection) => c.status === "accepted");
 
   return (
     <div className="space-y-6">
@@ -339,7 +340,7 @@ function HealthCircle() {
             <Clock className="h-4 w-4" /> Received Requests
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {pendingReceived.map(c => (
+            {pendingReceived.map((c: Connection) => (
               <Card key={c.id} className="border-primary/20 bg-primary/5">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -367,7 +368,7 @@ function HealthCircle() {
             <UserCheck className="h-4 w-4" /> Your Circle
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {active.map(c => {
+            {active.map((c: Connection) => {
               const otherName = c.senderId === user?.id ? c.receiverName : c.senderName;
               return (
                 <Card key={c.id} className="hover:shadow-sm transition-shadow">
@@ -396,7 +397,7 @@ function HealthCircle() {
         <div className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Sent Requests</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {pendingSent.map(c => (
+            {pendingSent.map((c: Connection) => (
               <Card key={c.id} className="opacity-70">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
