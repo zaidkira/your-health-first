@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import {
   FileText, Plus, Trash2, Download, Stethoscope, FlaskConical,
-  ScanLine, FolderOpen, Send, Inbox, ArrowUpRight, MessageSquare, Users
+  ScanLine, FolderOpen, Send, Inbox, ArrowUpRight, MessageSquare, Users, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -195,9 +195,67 @@ export default function Records() {
                   <Label>Description (optional)</Label>
                   <Textarea placeholder="Notes about this record..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} />
                 </div>
-                <div className="space-y-1">
-                  <Label>File URL (optional)</Label>
-                  <Input placeholder="https://..." value={form.fileUrl} onChange={e => setForm(f => ({ ...f, fileUrl: e.target.value }))} />
+                <div className="space-y-2 border-2 border-dashed rounded-lg p-4 bg-muted/20">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">File Attachment</Label>
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="file-upload" className="text-sm font-medium">Upload File</Label>
+                      <Input 
+                        id="file-upload"
+                        type="file" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setForm(f => ({ 
+                                ...f, 
+                                fileUrl: reader.result as string,
+                                fileName: file.name 
+                              }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="cursor-pointer"
+                      />
+                    </div>
+                    
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">Or paste URL</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="file-url" className="text-sm font-medium">File URL</Label>
+                      <Input 
+                        id="file-url"
+                        placeholder="https://..." 
+                        value={form.fileUrl.startsWith('data:') ? '' : form.fileUrl} 
+                        onChange={e => setForm(f => ({ ...f, fileUrl: e.target.value, fileName: e.target.value.split('/').pop() || "" }))} 
+                      />
+                    </div>
+                    
+                    {form.fileUrl && (
+                      <div className="flex items-center gap-2 p-2 bg-primary/10 rounded border border-primary/20">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-medium truncate flex-1">{form.fileName || "File selected"}</span>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6" 
+                          onClick={() => setForm(f => ({ ...f, fileUrl: "", fileName: "" }))}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
