@@ -1,5 +1,5 @@
 import { useGetDashboardSummary, useGetTodaysMedications, useGetUpcomingAppointments } from "@workspace/api-client-react";
-import { Pill, Calendar, Activity, Users, Clock, AlertCircle } from "lucide-react";
+import { Pill, Calendar, Activity, Users, Clock, AlertCircle, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { format, parseISO } from "date-fns";

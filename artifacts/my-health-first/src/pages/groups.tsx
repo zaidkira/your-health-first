@@ -36,8 +36,19 @@ export default function Groups() {
   const [messageContent, setMessageContent] = useState("");
 
   const { data: groups, isLoading: groupsLoading } = useListGroups();
-  const { data: groupDetail } = useGetGroup(selectedGroupId ?? 0, { query: { enabled: !!selectedGroupId } });
-  const { data: messages } = useListGroupMessages(selectedGroupId ?? 0, { query: { enabled: !!selectedGroupId, refetchInterval: 5000 } });
+  const { data: groupDetail } = useGetGroup(selectedGroupId ?? 0, { 
+    query: { 
+      queryKey: getGetGroupQueryKey(selectedGroupId ?? 0),
+      enabled: !!selectedGroupId 
+    } 
+  });
+  const { data: messages } = useListGroupMessages(selectedGroupId ?? 0, { 
+    query: { 
+      queryKey: getListGroupMessagesQueryKey(selectedGroupId ?? 0),
+      enabled: !!selectedGroupId, 
+      refetchInterval: 5000 
+    } 
+  });
 
   const createGroup = useCreateGroup();
   const deleteGroup = useDeleteGroup();
