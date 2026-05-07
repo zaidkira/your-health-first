@@ -69,7 +69,8 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     });
   } catch (err: any) {
     logger.error({ err, body: req.body }, "Registration error");
-    res.status(500).json({ error: err.message || "Internal server error" });
+    const message = err.detail ? `${err.message} - ${err.detail}` : err.message;
+    res.status(500).json({ error: message || "Internal server error" });
   }
 });
 
