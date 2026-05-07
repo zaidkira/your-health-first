@@ -18,7 +18,7 @@ export default function Pharmacies() {
   // Always fetch all pharmacies for stats
   const { data: allPharmacies } = useListPharmacies({}, { query: { queryKey: ["pharmacies-all"] as any } });
   const { data: pharmacies, isLoading } = useListPharmacies(
-    { medicine: searchTerm || undefined, wilaya: searchWilaya || undefined },
+    { medicine: searchTerm || undefined, wilaya: searchWilaya && searchWilaya !== "all" ? searchWilaya : undefined },
     { query: { queryKey: ["pharmacies", searchTerm, searchWilaya] as any } }
   );
 
@@ -134,10 +134,10 @@ export default function Pharmacies() {
           <Input className="pl-9" placeholder="Search medicine name..." value={medicine} onChange={e => setMedicine(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSearch()} />
         </div>
-        <Select value={wilaya} onValueChange={v => { setWilaya(v); setSearchWilaya(v); }}>
+        <Select value={wilaya || "all"} onValueChange={v => { setWilaya(v); setSearchWilaya(v); }}>
           <SelectTrigger className="sm:w-44"><SelectValue placeholder="All Wilayas" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Wilayas</SelectItem>
+            <SelectItem value="all">All Wilayas</SelectItem>
             {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
           </SelectContent>
         </Select>

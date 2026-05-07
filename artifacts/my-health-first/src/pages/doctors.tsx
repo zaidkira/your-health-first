@@ -25,7 +25,7 @@ export default function Doctors() {
 
   const { data: allDoctors } = useListDoctors({}, { query: { queryKey: ["doctors-all"] as any } });
   const { data: doctors, isLoading } = useListDoctors(
-    { specialty: specialty || undefined, wilaya: wilaya || undefined },
+    { specialty: specialty && specialty !== "all" ? specialty : undefined, wilaya: wilaya && wilaya !== "all" ? wilaya : undefined },
     { query: { queryKey: ["doctors", specialty, wilaya] as any } }
   );
   const { data: familyMembers } = useListFamilyMembers();
@@ -56,14 +56,14 @@ export default function Doctors() {
           appointmentTime: booking.time,
           isOnline: booking.isOnline,
           notes: booking.notes || null,
-          familyMemberId: booking.familyMemberId ? Number(booking.familyMemberId) : null,
+          familyMemberId: booking.familyMemberId && booking.familyMemberId !== "myself" ? Number(booking.familyMemberId) : null,
         }
       },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAppointmentsQueryKey() });
           setBookingDoctor(null);
-          setBooking({ date: "", time: "09:00", isOnline: false, notes: "", familyMemberId: "" });
+          setBooking({ date: "", time: "09:00", isOnline: false, notes: "", familyMemberId: "myself" });
           const memberName = (familyMembers ?? []).find(fm => String(fm.id) === booking.familyMemberId)?.name;
           toast({ title: memberName ? `Appointment booked for ${memberName}` : "Appointment booked successfully" });
         },
@@ -132,15 +132,15 @@ export default function Doctors() {
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Browse by Specialty</p>
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setSpecialty("")}
-            className={`px-3 py-1 rounded-full text-sm border transition-colors ${specialty === "" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
+            onClick={() => setSpecialty("all")}
+            className={`px-3 py-1 rounded-full text-sm border transition-colors ${specialty === "all" || specialty === "" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
           >
             All
           </button>
           {Object.entries(specialtyCounts).sort((a, b) => b[1] - a[1]).map(([sp, count]) => (
             <button
               key={sp}
-              onClick={() => setSpecialty(sp === specialty ? "" : sp)}
+              onClick={() => setSpecialty(sp === specialty ? "all" : sp)}
               className={`px-3 py-1 rounded-full text-sm border transition-colors flex items-center gap-1.5 ${specialty === sp ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
             >
               {sp}
@@ -156,17 +156,17 @@ export default function Doctors() {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search by name or specialty..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <Select value={specialty} onValueChange={setSpecialty}>
+        <Select value={specialty || "all"} onValueChange={setSpecialty}>
           <SelectTrigger className="sm:w-52"><SelectValue placeholder="All Specialties" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Specialties</SelectItem>
+            <SelectItem value="all">All Specialties</SelectItem>
             {SPECIALTIES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={wilaya} onValueChange={setWilaya}>
+        <Select value={wilaya || "all"} onValueChange={setWilaya}>
           <SelectTrigger className="sm:w-44"><SelectValue placeholder="All Wilayas" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Wilayas</SelectItem>
+            <SelectItem value="all">All Wilayas</SelectItem>
             {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -255,7 +255,7 @@ export default function Doctors() {
                     <SelectValue placeholder="Select person" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
+                    <SelectItem value="myself">
                       <div className="flex items-center gap-2">
                         <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
                         Myself

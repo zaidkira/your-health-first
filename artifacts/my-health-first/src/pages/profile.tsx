@@ -271,12 +271,12 @@ export default function Profile() {
                   <FormField control={form.control} name="bloodType" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Blood Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                      <Select onValueChange={field.onChange} value={field.value || "unknown"}>
                         <FormControl>
                           <SelectTrigger><SelectValue placeholder="Select blood type" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Unknown</SelectItem>
+                          <SelectItem value="unknown">Unknown</SelectItem>
                           {BLOOD_TYPES.map(bt => <SelectItem key={bt} value={bt}>{bt}</SelectItem>)}
                         </SelectContent>
                       </Select>

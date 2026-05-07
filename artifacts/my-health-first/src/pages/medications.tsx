@@ -191,10 +191,10 @@ export default function Medications() {
                 <FormField control={form.control} name="familyMemberId" render={({ field }) => (
                   <FormItem>
                     <FormLabel>For Who?</FormLabel>
-                    <Select onValueChange={(val) => field.onChange(val ? Number(val) : null)} value={field.value ? String(field.value) : ""}>
+                    <Select onValueChange={(val) => field.onChange(val === "myself" ? null : Number(val))} value={field.value ? String(field.value) : "myself"}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Select person" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Myself</SelectItem>
+                        <SelectItem value="myself">Myself</SelectItem>
                         {(familyMembers ?? []).map(fm => (
                           <SelectItem key={fm.id} value={String(fm.id)}>{fm.name} ({fm.relationship})</SelectItem>
                         ))}
