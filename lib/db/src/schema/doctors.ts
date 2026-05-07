@@ -16,6 +16,8 @@ export const doctorsTable = pgTable("doctors", {
   consultationFee: real("consultation_fee").notNull(),
   imageUrl: text("image_url"),
   isOnlineConsultation: boolean("is_online_consultation").notNull().default(false),
+  lat: real("lat"),
+  lng: real("lng"),
 });
 
 export const insertDoctorSchema = createInsertSchema(doctorsTable).omit({ id: true });

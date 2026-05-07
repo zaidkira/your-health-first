@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useGetProfile, useUpdateProfile } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { MapLocationPicker } from "@/components/MapLocationPicker";
 import {
   Form,
   FormControl,
@@ -90,6 +91,10 @@ const profileSchema = z.object({
   pharmacyIs24h:       z.boolean().optional(),
   pharmacyOpenTime:    z.string().optional(),
   pharmacyCloseTime:   z.string().optional(),
+  doctorLat:           z.number().optional(),
+  doctorLng:           z.number().optional(),
+  pharmacyLat:         z.number().optional(),
+  pharmacyLng:         z.number().optional(),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -109,6 +114,8 @@ export default function Profile() {
       doctorFee: undefined, doctorOnline: false,
       pharmacyAddress: "", pharmacyIs24h: false,
       pharmacyOpenTime: "08:00", pharmacyCloseTime: "21:00",
+      doctorLat: undefined, doctorLng: undefined,
+      pharmacyLat: undefined, pharmacyLng: undefined,
     },
   });
 
@@ -134,6 +141,10 @@ export default function Profile() {
       pharmacyIs24h:       pp?.is24h    ?? false,
       pharmacyOpenTime:    pp?.openTime  ?? "08:00",
       pharmacyCloseTime:   pp?.closeTime ?? "21:00",
+      doctorLat:           dp?.lat ?? undefined,
+      doctorLng:           dp?.lng ?? undefined,
+      pharmacyLat:         pp?.lat ?? undefined,
+      pharmacyLng:         pp?.lng ?? undefined,
     });
   }, [profile]);
 
@@ -153,6 +164,8 @@ export default function Profile() {
         availableHours:       `${data.doctorOpenTime} - ${data.doctorCloseTime}`,
         consultationFee:      data.doctorFee         ?? 2000,
         isOnlineConsultation: data.doctorOnline      ?? false,
+        lat:                  data.doctorLat         ?? null,
+        lng:                  data.doctorLng         ?? null,
       };
     }
 
@@ -162,6 +175,8 @@ export default function Profile() {
         is24h:     data.pharmacyIs24h   ?? false,
         openTime:  data.pharmacyIs24h ? "00:00" : (data.pharmacyOpenTime  ?? "08:00"),
         closeTime: data.pharmacyIs24h ? "23:59" : (data.pharmacyCloseTime ?? "21:00"),
+        lat:       data.pharmacyLat    ?? null,
+        lng:       data.pharmacyLng    ?? null,
       };
     }
 
@@ -414,6 +429,20 @@ export default function Profile() {
                     </div>
                   </FormItem>
                 )} />
+
+                <div className="space-y-3">
+                  <FormLabel>Clinic Location</FormLabel>
+                  <FormControl>
+                    <MapLocationPicker 
+                      value={form.watch("doctorLat") && form.watch("doctorLng") ? { lat: form.watch("doctorLat")!, lng: form.watch("doctorLng")! } : undefined}
+                      onChange={(loc) => {
+                        form.setValue("doctorLat", loc.lat);
+                        form.setValue("doctorLng", loc.lng);
+                      }}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">Click on the map to set your clinic's precise location for patients.</p>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -496,8 +525,23 @@ export default function Profile() {
                         <FormMessage />
                       </FormItem>
                     )} />
+                    </div>
                   </div>
                 )}
+
+                <div className="space-y-3 pt-2">
+                  <FormLabel>Pharmacy Location</FormLabel>
+                  <FormControl>
+                    <MapLocationPicker 
+                      value={form.watch("pharmacyLat") && form.watch("pharmacyLng") ? { lat: form.watch("pharmacyLat")!, lng: form.watch("pharmacyLng")! } : undefined}
+                      onChange={(loc) => {
+                        form.setValue("pharmacyLat", loc.lat);
+                        form.setValue("pharmacyLng", loc.lng);
+                      }}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">Click on the map to set your pharmacy's location so patients can find you.</p>
+                </div>
               </CardContent>
             </Card>
           )}

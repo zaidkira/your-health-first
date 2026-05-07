@@ -37,6 +37,8 @@ export const RegisterBody = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -45,6 +47,8 @@ export const RegisterBody = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });
@@ -105,6 +109,8 @@ export const GetProfileResponse = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -113,6 +119,8 @@ export const GetProfileResponse = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });
@@ -133,6 +141,8 @@ export const UpdateProfileBody = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -141,6 +151,8 @@ export const UpdateProfileBody = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });
@@ -162,6 +174,8 @@ export const UpdateProfileResponse = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -170,6 +184,8 @@ export const UpdateProfileResponse = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });
@@ -396,6 +412,8 @@ export const ListDoctorsResponseItem = zod.object({
   consultationFee: zod.number(),
   imageUrl: zod.string().nullish(),
   isOnlineConsultation: zod.boolean(),
+  lat: zod.number().nullish(),
+  lng: zod.number().nullish(),
 });
 export const ListDoctorsResponse = zod.array(ListDoctorsResponseItem);
 
@@ -419,6 +437,8 @@ export const GetDoctorResponse = zod.object({
   consultationFee: zod.number(),
   imageUrl: zod.string().nullish(),
   isOnlineConsultation: zod.boolean(),
+  lat: zod.number().nullish(),
+  lng: zod.number().nullish(),
 });
 
 /**
@@ -821,6 +841,8 @@ export const AdminListUsersResponseItem = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -829,6 +851,8 @@ export const AdminListUsersResponseItem = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });
@@ -855,6 +879,8 @@ export const AdminUpdateUserBody = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -863,6 +889,8 @@ export const AdminUpdateUserBody = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });
@@ -884,6 +912,8 @@ export const AdminUpdateUserResponse = zod.object({
       availableHours: zod.string(),
       consultationFee: zod.number(),
       isOnlineConsultation: zod.boolean().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
   pharmacyProfile: zod
@@ -892,6 +922,8 @@ export const AdminUpdateUserResponse = zod.object({
       is24h: zod.boolean().optional(),
       openTime: zod.string().optional(),
       closeTime: zod.string().optional(),
+      lat: zod.number().nullish(),
+      lng: zod.number().nullish(),
     })
     .optional(),
 });

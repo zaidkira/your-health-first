@@ -870,6 +870,10 @@ components:
           type: number
         isOnlineConsultation:
           type: boolean
+        lat:
+          type: ["number", "null"]
+        lng:
+          type: ["number", "null"]
       required:
         - specialty
         - address
@@ -888,6 +892,10 @@ components:
           type: string
         closeTime:
           type: string
+        lat:
+          type: ["number", "null"]
+        lng:
+          type: ["number", "null"]
       required:
         - address
 
@@ -1230,6 +1238,10 @@ components:
           type: ["string", "null"]
         isOnlineConsultation:
           type: boolean
+        lat:
+          type: ["number", "null"]
+        lng:
+          type: ["number", "null"]
       required:
         - id
         - name

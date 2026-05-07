@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { MapView } from "@/components/MapView";
+import { Map as MapIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const WILAYAS = ["Algiers", "Oran", "Constantine", "Annaba", "Blida", "Setif", "Tizi Ouzou", "Batna"];
 
@@ -153,85 +156,118 @@ export default function Pharmacies() {
         </p>
       )}
 
-      {/* Pharmacy cards */}
-      {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Searching pharmacies...</div>
-      ) : !pharmacies ? null : pharmacies.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center text-muted-foreground">
-          <Store className="h-12 w-12 mb-3 opacity-20" />
-          <p className="font-medium">No pharmacies found</p>
-          <p className="text-sm mt-1">Try a different medicine name or wilaya.</p>
+      <Tabs defaultValue="list" className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <TabsList>
+            <TabsTrigger value="list" className="gap-2">
+              <Store className="h-4 w-4" /> List View
+            </TabsTrigger>
+            <TabsTrigger value="map" className="gap-2">
+              <MapIcon className="h-4 w-4" /> Map View
+            </TabsTrigger>
+          </TabsList>
         </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {pharmacies.map(pharmacy => {
-            const availCount = pharmacy.medicines?.filter((m: any) => m.available).length ?? 0;
-            const totalCount = pharmacy.medicines?.length ?? 0;
-            return (
-              <Card key={pharmacy.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Store className="h-4 w-4 text-primary" />
-                      </div>
-                      <CardTitle className="text-base truncate">{pharmacy.name}</CardTitle>
-                    </div>
-                    <div className="flex gap-1.5 shrink-0">
-                      {pharmacy.isOpenNow ? (
-                        <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs">Open</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">Closed</Badge>
-                      )}
-                      {pharmacy.is24h && <Badge variant="outline" className="text-xs">24h</Badge>}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 shrink-0" /><span>{pharmacy.address}, {pharmacy.wilaya}</span></div>
-                    {pharmacy.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 shrink-0" /><span>{pharmacy.phone}</span></div>}
-                  </div>
 
-                  {totalCount > 0 && (
-                    <>
-                      {/* Stock summary bar */}
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-muted-foreground font-medium uppercase tracking-wide">Stock</span>
-                        <span className="font-semibold text-emerald-600">{availCount}/{totalCount} available</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-1.5 mb-3">
-                        <div
-                          className="bg-emerald-500 h-1.5 rounded-full transition-all"
-                          style={{ width: totalCount > 0 ? `${(availCount / totalCount) * 100}%` : "0%" }}
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        {pharmacy.medicines.map((med: any, i: number) => (
-                          <div key={i} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
-                            <div className="flex items-center gap-2">
-                              {med.available
-                                ? <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                                : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-                              <span className={med.available ? "" : "text-muted-foreground line-through"}>{med.name}</span>
-                            </div>
-                            {med.available && med.price ? (
-                              <span className="text-xs font-semibold text-primary">{med.price.toLocaleString()} DZD</span>
-                            ) : !med.available ? (
-                              <span className="text-xs text-muted-foreground">Out of stock</span>
-                            ) : null}
+        <TabsContent value="list" className="mt-0">
+          {/* Pharmacy cards */}
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground">Searching pharmacies...</div>
+          ) : !pharmacies ? null : pharmacies.length === 0 ? (
+            <div className="text-center py-16 flex flex-col items-center text-muted-foreground">
+              <Store className="h-12 w-12 mb-3 opacity-20" />
+              <p className="font-medium">No pharmacies found</p>
+              <p className="text-sm mt-1">Try a different medicine name or wilaya.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {pharmacies.map(pharmacy => {
+                const availCount = pharmacy.medicines?.filter((m: any) => m.available).length ?? 0;
+                const totalCount = pharmacy.medicines?.length ?? 0;
+                return (
+                  <Card key={pharmacy.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <Store className="h-4 w-4 text-primary" />
                           </div>
-                        ))}
+                          <CardTitle className="text-base truncate">{pharmacy.name}</CardTitle>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          {pharmacy.isOpenNow ? (
+                            <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs">Open</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">Closed</Badge>
+                          )}
+                          {pharmacy.is24h && <Badge variant="outline" className="text-xs">24h</Badge>}
+                        </div>
                       </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 shrink-0" /><span>{pharmacy.address}, {pharmacy.wilaya}</span></div>
+                        {pharmacy.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 shrink-0" /><span>{pharmacy.phone}</span></div>}
+                      </div>
+
+                      {totalCount > 0 && (
+                        <>
+                          {/* Stock summary bar */}
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-muted-foreground font-medium uppercase tracking-wide">Stock</span>
+                            <span className="font-semibold text-emerald-600">{availCount}/{totalCount} available</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-1.5 mb-3">
+                            <div
+                              className="bg-emerald-500 h-1.5 rounded-full transition-all"
+                              style={{ width: totalCount > 0 ? `${(availCount / totalCount) * 100}%` : "0%" }}
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {pharmacy.medicines.map((med: any, i: number) => (
+                              <div key={i} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                                <div className="flex items-center gap-2">
+                                  {med.available
+                                    ? <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                    : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
+                                  <span className={med.available ? "" : "text-muted-foreground line-through"}>{med.name}</span>
+                                </div>
+                                {med.available && med.price ? (
+                                  <span className="text-xs font-semibold text-primary">{med.price.toLocaleString()} DZD</span>
+                                ) : !med.available ? (
+                                  <span className="text-xs text-muted-foreground">Out of stock</span>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="map" className="mt-0">
+          <Card>
+            <CardContent className="p-0">
+              <MapView 
+                points={pharmacies?.map(p => ({
+                  id: p.id,
+                  lat: (p as any).lat,
+                  lng: (p as any).lng,
+                  title: p.name,
+                  subtitle: p.is24h ? "Open 24/7" : "Pharmacy",
+                  details: `${p.address}, ${p.wilaya}`,
+                })) ?? []}
+                className="h-[600px] w-full rounded-md"
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

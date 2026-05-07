@@ -16,6 +16,10 @@ export interface DoctorProfile {
   availableHours: string;
   consultationFee: number;
   isOnlineConsultation?: boolean;
+  /** @nullable */
+  lat?: number | null;
+  /** @nullable */
+  lng?: number | null;
 }
 
 export interface PharmacyProfile {
@@ -23,6 +27,10 @@ export interface PharmacyProfile {
   is24h?: boolean;
   openTime?: string;
   closeTime?: string;
+  /** @nullable */
+  lat?: number | null;
+  /** @nullable */
+  lng?: number | null;
 }
 
 export type RegisterBodyRole =
@@ -232,6 +240,10 @@ export interface Doctor {
   /** @nullable */
   imageUrl?: string | null;
   isOnlineConsultation: boolean;
+  /** @nullable */
+  lat?: number | null;
+  /** @nullable */
+  lng?: number | null;
 }
 
 export interface Appointment {

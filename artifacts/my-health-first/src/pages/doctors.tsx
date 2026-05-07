@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { MapView } from "@/components/MapView";
+import { Map as MapIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const WILAYAS = ["Algiers", "Oran", "Constantine", "Annaba", "Blida", "Setif", "Tizi Ouzou", "Batna"];
 const SPECIALTIES = ["General Practitioner", "Cardiologist", "Dermatologist", "Pediatrician", "Neurologist", "Orthopedist", "Ophthalmologist", "Gynecologist"];
@@ -178,55 +181,91 @@ export default function Doctors() {
           {specialty && <> in <span className="font-semibold text-foreground">{specialty}</span></>}
           {wilaya && <> · <span className="font-semibold text-foreground">{wilaya}</span></>}
         </p>
+        </p>
       )}
 
-      {/* Doctor cards */}
-      {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading doctors...</div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">No doctors found matching your criteria.</div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(doctor => (
-            <Card key={doctor.id} className="hover:shadow-md transition-shadow group">
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 group-hover:bg-primary/20 transition-colors">
-                    {doctor.name.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold truncate">Dr. {doctor.name}</p>
-                    <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                      <span className="text-xs font-medium">{doctor.rating.toFixed(1)}</span>
-                      <span className="text-xs text-muted-foreground">({doctor.reviewCount} reviews)</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1.5 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{doctor.address}, {doctor.wilaya}</span></div>
-                  <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /><span>{doctor.availableDays}</span></div>
-                  {doctor.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 shrink-0" /><span>{doctor.phone}</span></div>}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-lg font-bold text-primary">{doctor.consultationFee.toLocaleString()} DZD</span>
-                    {doctor.isOnlineConsultation && (
-                      <Badge variant="secondary" className="ml-2 text-xs gap-1">
-                        <Video className="h-3 w-3" />Online
-                      </Badge>
-                    )}
-                  </div>
-                  <Button size="sm" className="gap-1.5" onClick={() => setBookingDoctor({ id: doctor.id, name: doctor.name, specialty: doctor.specialty })}>
-                    <CalendarPlus className="h-3.5 w-3.5" />Book
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <Tabs defaultValue="list" className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <TabsList>
+            <TabsTrigger value="list" className="gap-2">
+              <Users className="h-4 w-4" /> List View
+            </TabsTrigger>
+            <TabsTrigger value="map" className="gap-2">
+              <MapIcon className="h-4 w-4" /> Map View
+            </TabsTrigger>
+          </TabsList>
         </div>
-      )}
+
+        <TabsContent value="list" className="mt-0">
+          {/* Doctor cards */}
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground">Loading doctors...</div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">No doctors found matching your criteria.</div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filtered.map(doctor => (
+                <Card key={doctor.id} className="hover:shadow-md transition-shadow group">
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shrink-0 group-hover:bg-primary/20 transition-colors">
+                        {doctor.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">Dr. {doctor.name}</p>
+                        <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                          <span className="text-xs font-medium">{doctor.rating.toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">({doctor.reviewCount} reviews)</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{doctor.address}, {doctor.wilaya}</span></div>
+                      <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 shrink-0" /><span>{doctor.availableDays}</span></div>
+                      {doctor.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 shrink-0" /><span>{doctor.phone}</span></div>}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-lg font-bold text-primary">{doctor.consultationFee.toLocaleString()} DZD</span>
+                        {doctor.isOnlineConsultation && (
+                          <Badge variant="secondary" className="ml-2 text-xs gap-1">
+                            <Video className="h-3 w-3" />Online
+                          </Badge>
+                        )}
+                      </div>
+                      <Button size="sm" className="gap-1.5" onClick={() => setBookingDoctor({ id: doctor.id, name: doctor.name, specialty: doctor.specialty })}>
+                        <CalendarPlus className="h-3.5 w-3.5" />Book
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="map" className="mt-0">
+          <Card>
+            <CardContent className="p-0">
+              <MapView 
+                points={filtered.map(d => ({
+                  id: d.id,
+                  lat: (d as any).lat,
+                  lng: (d as any).lng,
+                  title: `Dr. ${d.name}`,
+                  subtitle: d.specialty,
+                  details: `${d.address}, ${d.wilaya}`,
+                  actionLabel: "Book Appointment",
+                  onAction: () => setBookingDoctor({ id: d.id, name: d.name, specialty: d.specialty })
+                }))}
+                className="h-[600px] w-full rounded-md"
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Booking dialog */}
       <Dialog open={!!bookingDoctor} onOpenChange={v => !v && setBookingDoctor(null)}>

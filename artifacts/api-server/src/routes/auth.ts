@@ -132,6 +132,8 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
         availableHours: doc.availableHours,
         consultationFee: doc.consultationFee,
         isOnlineConsultation: doc.isOnlineConsultation,
+        lat: doc.lat,
+        lng: doc.lng,
       };
     }
   }
@@ -146,6 +148,8 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
         is24h: ph.is24h,
         openTime: ph.openTime,
         closeTime: ph.closeTime,
+        lat: ph.lat,
+        lng: ph.lng,
       };
     }
   }
@@ -203,6 +207,8 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
           availableHours: dp.availableHours,
           consultationFee: dp.consultationFee,
           isOnlineConsultation: dp.isOnlineConsultation ?? false,
+          lat: dp.lat ?? existing[0].lat,
+          lng: dp.lng ?? existing[0].lng,
         })
         .where(eq(doctorsTable.name, user.name));
     } else {
@@ -214,6 +220,8 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
         availableHours: dp.availableHours,
         consultationFee: dp.consultationFee,
         isOnlineConsultation: dp.isOnlineConsultation ?? false,
+        lat: dp.lat ?? null,
+        lng: dp.lng ?? null,
         rating: 4.0, reviewCount: 0,
       });
     }
@@ -222,6 +230,8 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
       availableDays: dp.availableDays, availableHours: dp.availableHours,
       consultationFee: dp.consultationFee,
       isOnlineConsultation: dp.isOnlineConsultation ?? false,
+      lat: dp.lat ?? null,
+      lng: dp.lng ?? null,
     };
   }
 
@@ -242,6 +252,8 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
           is24h: pp.is24h ?? false,
           openTime: newOpenTime,
           closeTime: newCloseTime,
+          lat: pp.lat ?? existing[0].lat,
+          lng: pp.lng ?? existing[0].lng,
         })
         .where(eq(pharmaciesTable.name, user.name));
     } else {
@@ -250,12 +262,14 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
         address: pp.address, phone: updated.phone ?? null,
         isOpenNow: true, is24h: pp.is24h ?? false,
         openTime: newOpenTime, closeTime: newCloseTime,
+        lat: pp.lat ?? null, lng: pp.lng ?? null,
         medicinesJson: JSON.stringify([]),
       });
     }
     response.pharmacyProfile = {
       address: pp.address, is24h: pp.is24h ?? false,
       openTime: newOpenTime, closeTime: newCloseTime,
+      lat: pp.lat ?? null, lng: pp.lng ?? null,
     };
   }
 
