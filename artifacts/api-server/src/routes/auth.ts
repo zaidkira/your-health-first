@@ -8,6 +8,33 @@ import { sql } from "drizzle-orm";
 
 const router: IRouter = Router();
 
+// TEMPORARY: Fix database schema by adding user_id columns if they don't exist
+router.get("/auth/debug/fix-db", async (req, res) => {
+  try {
+    await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);`);
+    await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);`);
+    
+    // Try to link existing profiles by name as a fallback
+    await db.execute(sql`
+      UPDATE doctors d 
+      SET user_id = u.id 
+      FROM users u 
+      WHERE d.name = u.name AND d.user_id IS NULL;
+    `);
+    await db.execute(sql`
+      UPDATE pharmacies p 
+      SET user_id = u.id 
+      FROM users u 
+      WHERE p.name = u.name AND p.user_id IS NULL;
+    `);
+
+    res.json({ message: "Database schema fixed successfully" });
+  } catch (err: any) {
+    logger.error({ err }, "DB fix error");
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post("/auth/register", async (req, res): Promise<void> => {
   try {
     const parsed = RegisterBody.safeParse(req.body);
@@ -89,7 +116,7 @@ async function getFullUserInTx(user: any, tx: any) {
   };
 
   if (user.role === "doctor") {
-    const [doc] = await tx.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    const [doc] = await tx.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
     if (doc) {
       response.doctorProfile = {
         specialty: doc.specialty,
@@ -103,7 +130,7 @@ async function getFullUserInTx(user: any, tx: any) {
       };
     }
   } else if (user.role === "pharmacy") {
-    const [ph] = await tx.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+    const [ph] = await tx.select().from(pharmaciesTable).where(eq(pharmaciesTable.userId, user.id));
     if (ph) {
       response.pharmacyProfile = {
         address: ph.address,
@@ -127,7 +154,7 @@ async function getFullUser(user: any) {
   };
 
   if (user.role === "doctor") {
-    const [doc] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    const [doc] = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
     if (doc) {
       response.doctorProfile = {
         specialty: doc.specialty,
@@ -141,7 +168,7 @@ async function getFullUser(user: any) {
       };
     }
   } else if (user.role === "pharmacy") {
-    const [ph] = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+    const [ph] = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.userId, user.id));
     if (ph) {
       response.pharmacyProfile = {
         address: ph.address,
