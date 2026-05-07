@@ -25,7 +25,7 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
   let upcomingApptsCondition = eq(appointmentsTable.userId, userId);
   
   if (user.role === "doctor") {
-    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
     if (doctor) {
       upcomingApptsCondition = eq(appointmentsTable.doctorId, doctor.id);
     }

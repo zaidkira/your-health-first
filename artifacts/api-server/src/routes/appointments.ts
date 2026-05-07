@@ -14,7 +14,7 @@ router.get("/appointments", requireAuth, async (req, res): Promise<void> => {
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   
   if (user.role === "doctor") {
-    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
     if (doctor) {
       const appts = await db.select().from(appointmentsTable)
         .where(eq(appointmentsTable.doctorId, doctor.id))
@@ -67,7 +67,7 @@ router.get("/appointments/upcoming", requireAuth, async (req, res): Promise<void
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
 
   if (user.role === "doctor") {
-    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
     if (doctor) {
       const upcoming = await db.select().from(appointmentsTable).where(
         and(
@@ -107,7 +107,7 @@ router.patch("/appointments/:id", requireAuth, async (req, res): Promise<void> =
   if (appointment.userId === userId) {
     authorized = true;
   } else if (user.role === "doctor") {
-    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    const [doctor] = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
     if (doctor && appointment.doctorId === doctor.id) {
       authorized = true;
     }
