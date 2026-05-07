@@ -109,7 +109,10 @@ export default function Profile() {
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "", phone: "", wilaya: "", bloodType: "",
+      name: user?.name ?? "", 
+      phone: user?.phone ?? "", 
+      wilaya: user?.wilaya ?? "", 
+      bloodType: (user as any)?.bloodType ?? "",
       doctorSpecialty: "", doctorAddress: "", doctorAvailableDays: "Mon-Fri",
       doctorOpenTime: "08:00", doctorCloseTime: "17:00",
       doctorFee: undefined, doctorOnline: false,
@@ -127,10 +130,10 @@ export default function Profile() {
     const pp = profile.pharmacyProfile;
     const { open: dOpen, close: dClose } = parseHours(dp?.availableHours);
     form.reset({
-      name:      profile.name ?? "",
-      phone:     profile.phone ?? "",
-      wilaya:    profile.wilaya ?? "",
-      bloodType: (profile as any).bloodType ?? "",
+      name:      profile.name ?? user?.name ?? "",
+      phone:     profile.phone ?? user?.phone ?? "",
+      wilaya:    profile.wilaya ?? user?.wilaya ?? "",
+      bloodType: (profile as any).bloodType ?? (user as any)?.bloodType ?? "",
       doctorSpecialty:     dp?.specialty     ?? "",
       doctorAddress:       dp?.address       ?? "",
       doctorAvailableDays: dp?.availableDays ?? "Mon-Fri",
