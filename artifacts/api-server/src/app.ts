@@ -5,6 +5,35 @@ import path from "path";
 import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { db, usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import { hashPassword } from "./lib/auth";
+
+// Initialize default admin user
+async function initAdmin() {
+  try {
+    const email = "admin@health.com";
+    const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    
+    if (!existing) {
+      await db.insert(usersTable).values({
+        name: "Super Admin",
+        email: email,
+        passwordHash: hashPassword("admin123"),
+        role: "admin",
+        wilaya: "Algiers"
+      });
+      logger.info("Default admin user created: admin@health.com / admin123");
+    } else if (existing.role !== "admin") {
+      await db.update(usersTable).set({ role: "admin" }).where(eq(usersTable.id, existing.id));
+      logger.info("Existing user promoted to admin: admin@health.com");
+    }
+  } catch (err) {
+    logger.error({ err }, "Failed to initialize admin user");
+  }
+}
+
+initAdmin();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
