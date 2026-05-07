@@ -23,22 +23,38 @@ router.get("/auth/debug/fix-db", async (req, res) => {
       steps.push("Checked user_id in pharmacies");
     } catch (e: any) { steps.push("Error pharmacies column: " + e.message); }
     
-    // 2. Ensure record_shares table exists
+    // 2. Ensure record_shares table exists using most compatible syntax
     try {
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS record_shares (
           id SERIAL PRIMARY KEY,
-          record_id INTEGER NOT NULL,
-          sender_id INTEGER NOT NULL,
-          doctor_id INTEGER NOT NULL,
-          message TEXT,
-          doctor_reply TEXT,
-          sent_at TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT NOW()
+          record_id integer NOT NULL,
+          sender_id integer NOT NULL,
+          doctor_id integer NOT NULL,
+          message text,
+          doctor_reply text,
+          sent_at timestamptz NOT NULL DEFAULT now()
         );
       `);
-      steps.push("Checked record_shares table");
+      steps.push("Checked record_shares table (standard syntax)");
     } catch (e: any) { 
-      steps.push("Error record_shares table: " + e.message); 
+      try {
+        // Try fallback syntax for older postgres or restricted envs
+        await db.execute(sql`
+          CREATE TABLE record_shares (
+            id serial PRIMARY KEY,
+            record_id integer NOT NULL,
+            sender_id integer NOT NULL,
+            doctor_id integer NOT NULL,
+            message text,
+            doctor_reply text,
+            sent_at timestamp NOT NULL DEFAULT now()
+          );
+        `);
+        steps.push("Checked record_shares table (fallback syntax)");
+      } catch (e2: any) {
+        steps.push("Error record_shares table: " + e2.message);
+      }
     }
     
     // 3. Link existing profiles by name as a fallback
