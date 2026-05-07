@@ -10,41 +10,63 @@ const router: IRouter = Router();
 
 // TEMPORARY: Fix database schema by adding user_id columns if they don't exist
 router.get("/auth/debug/fix-db", async (req, res) => {
+  const steps: string[] = [];
   try {
-    await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);`);
-    await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);`);
+    // 1. Ensure user_id column exists in profiles
+    try {
+      await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+      steps.push("Checked user_id in doctors");
+    } catch (e) { steps.push("Error doctors column: " + (e as any).message); }
     
-    // Create shared_records table if it doesn't exist
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS shared_records (
-        id SERIAL PRIMARY KEY,
-        record_id INTEGER NOT NULL,
-        sender_id INTEGER NOT NULL,
-        doctor_id INTEGER NOT NULL,
-        message TEXT,
-        doctor_reply TEXT,
-        sent_at TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT NOW()
-      );
-    `);
+    try {
+      await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+      steps.push("Checked user_id in pharmacies");
+    } catch (e) { steps.push("Error pharmacies column: " + (e as any).message); }
+    
+    // 2. Ensure shared_records table exists
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS shared_records (
+          id SERIAL PRIMARY KEY,
+          record_id INTEGER NOT NULL,
+          sender_id INTEGER NOT NULL,
+          doctor_id INTEGER NOT NULL,
+          message TEXT,
+          doctor_reply TEXT,
+          sent_at TIMESTAMP WITH TIMEZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      steps.push("Checked shared_records table");
+    } catch (e) { steps.push("Error shared_records table: " + (e as any).message); }
+    
+    // 3. Link existing profiles by name as a fallback
+    try {
+      await db.execute(sql`
+        UPDATE doctors d 
+        SET user_id = u.id 
+        FROM users u 
+        WHERE d.name = u.name AND d.user_id IS NULL;
+      `);
+      steps.push("Linked doctors by name");
+    } catch (e) { steps.push("Error link doctors: " + (e as any).message); }
 
-    // Try to link existing profiles by name as a fallback
-    await db.execute(sql`
-      UPDATE doctors d 
-      SET user_id = u.id 
-      FROM users u 
-      WHERE d.name = u.name AND d.user_id IS NULL;
-    `);
-    await db.execute(sql`
-      UPDATE pharmacies p 
-      SET user_id = u.id 
-      FROM users u 
-      WHERE p.name = u.name AND p.user_id IS NULL;
-    `);
+    try {
+      await db.execute(sql`
+        UPDATE pharmacies p 
+        SET user_id = u.id 
+        FROM users u 
+        WHERE p.name = u.name AND p.user_id IS NULL;
+      `);
+      steps.push("Linked pharmacies by name");
+    } catch (e) { steps.push("Error link pharmacies: " + (e as any).message); }
 
-    res.json({ message: "Database schema fixed successfully" });
+    res.json({ message: "Database schema fix process completed", steps });
   } catch (err: any) {
-    logger.error({ err }, "DB fix error");
-    res.status(500).json({ error: err.message });
+    logger.error({ err, steps }, "DB fix overall error");
+    res.status(500).json({ 
+      error: err.message, 
+      steps 
+    });
   }
 });
 
@@ -241,7 +263,7 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
 
   if (user.role === "doctor") {
     const doctors = await db.select().from(doctorsTable)
-      .where(eq(doctorsTable.name, user.name));
+      .where(eq(doctorsTable.userId, userId));
     const doc = doctors[0];
     if (doc) {
       response.doctorProfile = {
@@ -259,7 +281,7 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
 
   if (user.role === "pharmacy") {
     const pharmacies = await db.select().from(pharmaciesTable)
-      .where(eq(pharmaciesTable.name, user.name));
+      .where(eq(pharmaciesTable.userId, userId));
     const ph = pharmacies[0];
     if (ph) {
       response.pharmacyProfile = {
