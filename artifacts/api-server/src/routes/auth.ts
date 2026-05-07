@@ -24,45 +24,50 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
     const passwordHash = hashPassword(password);
     const role = parsed.data.role ?? "patient";
-    const [user] = await db
-      .insert(usersTable)
-      .values({ name, email, passwordHash, phone, wilaya, role })
-      .returning();
+    
+    const [user, fullUser] = await db.transaction(async (tx) => {
+      const [u] = await tx
+        .insert(usersTable)
+        .values({ name, email, passwordHash, phone, wilaya, role })
+        .returning();
 
-    if (role === "doctor" && parsed.data.doctorProfile) {
-      const dp = parsed.data.doctorProfile;
-      await db.insert(doctorsTable).values({
-        name,
-        specialty: dp.specialty,
-        wilaya: wilaya ?? "Algiers",
-        address: dp.address,
-        phone: phone ?? null,
-        availableDays: dp.availableDays,
-        availableHours: dp.availableHours,
-        consultationFee: dp.consultationFee,
-        isOnlineConsultation: dp.isOnlineConsultation ?? false,
-        rating: 4.0,
-        reviewCount: 0,
-      });
-    }
+      if (role === "doctor" && parsed.data.doctorProfile) {
+        const dp = parsed.data.doctorProfile;
+        await tx.insert(doctorsTable).values({
+          name,
+          specialty: dp.specialty,
+          wilaya: wilaya ?? "Algiers",
+          address: dp.address,
+          phone: phone ?? null,
+          availableDays: dp.availableDays,
+          availableHours: dp.availableHours,
+          consultationFee: dp.consultationFee,
+          isOnlineConsultation: dp.isOnlineConsultation ?? false,
+          rating: 4.0,
+          reviewCount: 0,
+        });
+      }
 
-    if (role === "pharmacy" && parsed.data.pharmacyProfile) {
-      const pp = parsed.data.pharmacyProfile;
-      await db.insert(pharmaciesTable).values({
-        name,
-        wilaya: wilaya ?? "Algiers",
-        address: pp.address,
-        phone: phone ?? null,
-        isOpenNow: true,
-        is24h: pp.is24h ?? false,
-        openTime: pp.is24h ? "00:00" : (pp.openTime ?? "08:00"),
-        closeTime: pp.is24h ? "23:59" : (pp.closeTime ?? "21:00"),
-        medicinesJson: JSON.stringify([]),
-      });
-    }
+      if (role === "pharmacy" && parsed.data.pharmacyProfile) {
+        const pp = parsed.data.pharmacyProfile;
+        await tx.insert(pharmaciesTable).values({
+          name,
+          wilaya: wilaya ?? "Algiers",
+          address: pp.address,
+          phone: phone ?? null,
+          isOpenNow: true,
+          is24h: pp.is24h ?? false,
+          openTime: pp.is24h ? "00:00" : (pp.openTime ?? "08:00"),
+          closeTime: pp.is24h ? "23:59" : (pp.closeTime ?? "21:00"),
+          medicinesJson: JSON.stringify([]),
+        });
+      }
+
+      const fu = await getFullUserInTx(u, tx);
+      return [u, fu];
+    });
 
     const token = createToken(user.id);
-    const fullUser = await getFullUser(user);
     res.status(201).json({
       token,
       user: fullUser,
@@ -73,6 +78,44 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     res.status(500).json({ error: message || "Internal server error" });
   }
 });
+
+async function getFullUserInTx(user: any, tx: any) {
+  const response: any = {
+    id: user.id, name: user.name, email: user.email,
+    phone: user.phone ?? null, wilaya: user.wilaya ?? null,
+    bloodType: user.bloodType ?? null,
+    role: user.role, createdAt: user.createdAt.toISOString(),
+  };
+
+  if (user.role === "doctor") {
+    const [doc] = await tx.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+    if (doc) {
+      response.doctorProfile = {
+        specialty: doc.specialty,
+        address: doc.address,
+        availableDays: doc.availableDays,
+        availableHours: doc.availableHours,
+        consultationFee: doc.consultationFee,
+        isOnlineConsultation: doc.isOnlineConsultation,
+        lat: doc.lat,
+        lng: doc.lng,
+      };
+    }
+  } else if (user.role === "pharmacy") {
+    const [ph] = await tx.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+    if (ph) {
+      response.pharmacyProfile = {
+        address: ph.address,
+        is24h: ph.is24h,
+        openTime: ph.openTime,
+        closeTime: ph.closeTime,
+        lat: ph.lat,
+        lng: ph.lng,
+      };
+    }
+  }
+  return response;
+}
 
 async function getFullUser(user: any) {
   const response: any = {
