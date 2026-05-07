@@ -850,111 +850,52 @@ export const ReplyToSharedRecordResponse = zod.object({
 });
 
 /**
- * @summary List groups I am a member of
+ * @summary List connection requests
  */
-export const ListGroupsResponseItem = zod.object({
+export const GetConnectionsResponseItem = zod.object({
   id: zod.number(),
-  name: zod.string(),
-  description: zod.string().nullish(),
-  createdById: zod.number(),
-  createdAt: zod.string(),
-  memberCount: zod.number().optional(),
+  senderId: zod.number(),
+  receiverId: zod.number(),
+  status: zod.enum(["pending", "accepted", "rejected"]),
+  createdAt: zod.coerce.date(),
+  senderName: zod.string().optional(),
+  receiverName: zod.string().optional(),
 });
-export const ListGroupsResponse = zod.array(ListGroupsResponseItem);
+export const GetConnectionsResponse = zod.array(GetConnectionsResponseItem);
 
 /**
- * @summary Create a new group
+ * @summary Send connection request
  */
-export const CreateGroupBody = zod.object({
-  name: zod.string(),
-  description: zod.string().optional(),
+export const PostConnectionsBody = zod.object({
+  email: zod.string().email(),
 });
 
 /**
- * @summary Get group details including members
+ * @summary Respond to connection request
  */
-export const GetGroupParams = zod.object({
+export const PatchConnectionsIdParams = zod.object({
   id: zod.coerce.number(),
 });
 
-export const GetGroupResponse = zod
-  .object({
-    id: zod.number(),
-    name: zod.string(),
-    description: zod.string().nullish(),
-    createdById: zod.number(),
-    createdAt: zod.string(),
-    memberCount: zod.number().optional(),
-  })
-  .and(
-    zod.object({
-      members: zod
-        .array(
-          zod.object({
-            id: zod.number(),
-            name: zod.string(),
-            email: zod.string(),
-            role: zod.string().optional(),
-          }),
-        )
-        .optional(),
-    }),
-  );
-
-/**
- * @summary Delete a group (admin only)
- */
-export const DeleteGroupParams = zod.object({
-  id: zod.coerce.number(),
+export const PatchConnectionsIdBody = zod.object({
+  status: zod.enum(["accepted", "rejected"]),
 });
 
-/**
- * @summary Invite a user to a group
- */
-export const InviteToGroupParams = zod.object({
-  id: zod.coerce.number(),
-});
-
-export const InviteToGroupBody = zod.object({
-  email: zod.string(),
-});
-
-/**
- * @summary Remove a member from group (admin or self)
- */
-export const RemoveMemberParams = zod.object({
-  groupId: zod.coerce.number(),
-  userId: zod.coerce.number(),
-});
-
-/**
- * @summary List messages in a group
- */
-export const ListGroupMessagesParams = zod.object({
-  id: zod.coerce.number(),
-});
-
-export const ListGroupMessagesResponseItem = zod.object({
+export const PatchConnectionsIdResponse = zod.object({
   id: zod.number(),
-  groupId: zod.number(),
-  userId: zod.number(),
-  userName: zod.string().optional(),
-  content: zod.string(),
-  createdAt: zod.string(),
+  senderId: zod.number(),
+  receiverId: zod.number(),
+  status: zod.enum(["pending", "accepted", "rejected"]),
+  createdAt: zod.coerce.date(),
+  senderName: zod.string().optional(),
+  receiverName: zod.string().optional(),
 });
-export const ListGroupMessagesResponse = zod.array(
-  ListGroupMessagesResponseItem,
-);
 
 /**
- * @summary Post a message to a group
+ * @summary Remove connection
  */
-export const SendGroupMessageParams = zod.object({
+export const DeleteConnectionsIdParams = zod.object({
   id: zod.coerce.number(),
-});
-
-export const SendGroupMessageBody = zod.object({
-  content: zod.string(),
 });
 
 /**

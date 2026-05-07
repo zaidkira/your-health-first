@@ -32,7 +32,6 @@ const BASE_NAV_ITEMS = [
   { name: "Appointments",    href: "/appointments", icon: Calendar        },
   { name: "Pharmacies",      href: "/pharmacies",   icon: MapPin          },
   { name: "Family",          href: "/family",       icon: UsersRound      },
-  { name: "Groups",          href: "/groups",       icon: Users           },
 ];
 
 const ADMIN_NAV_ITEM = { name: "All Users", href: "/admin/users", icon: ShieldCheck };

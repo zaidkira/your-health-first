@@ -752,81 +752,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/SharedRecord"
 
-  /groups:
+  /connections:
     get:
-      operationId: listGroups
-      tags: [groups]
-      summary: List groups I am a member of
+      summary: List connection requests
+      tags: [Connections]
+      security: [{ bearerAuth: [] }]
       responses:
-        "200":
-          description: List of groups
+        200:
+          description: List of connections
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Group"
+                  $ref: '#/components/schemas/Connection'
     post:
-      operationId: createGroup
-      tags: [groups]
-      summary: Create a new group
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateGroupBody"
-      responses:
-        "201":
-          description: Group created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Group"
-
-  /groups/{id}:
-    get:
-      operationId: getGroup
-      tags: [groups]
-      summary: Get group details including members
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Group details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GroupDetail"
-    delete:
-      operationId: deleteGroup
-      tags: [groups]
-      summary: Delete a group (admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Group deleted
-
-  /groups/{id}/members:
-    post:
-      operationId: inviteToGroup
-      tags: [groups]
-      summary: Invite a user to a group
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+      summary: Send connection request
+      tags: [Connections]
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -836,55 +779,20 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
               required: [email]
       responses:
-        "200":
-          description: User invited
-
-  /groups/{groupId}/members/{userId}:
-    delete:
-      operationId: removeMember
-      tags: [groups]
-      summary: Remove a member from group (admin or self)
-      parameters:
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Member removed
-
-  /groups/{id}/messages:
-    get:
-      operationId: listGroupMessages
-      tags: [groups]
-      summary: List messages in a group
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: List of messages
+        201:
+          description: Request sent
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GroupMessage"
-    post:
-      operationId: sendGroupMessage
-      tags: [groups]
-      summary: Post a message to a group
+                $ref: '#/components/schemas/Connection'
+  /connections/{id}:
+    patch:
+      summary: Respond to connection request
+      tags: [Connections]
+      security: [{ bearerAuth: [] }]
       parameters:
         - name: id
           in: path
@@ -898,16 +806,30 @@ paths:
             schema:
               type: object
               properties:
-                content:
+                status:
                   type: string
-              required: [content]
+                  enum: [accepted, rejected]
+              required: [status]
       responses:
-        "201":
-          description: Message posted
+        200:
+          description: Request updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GroupMessage"
+                $ref: '#/components/schemas/Connection'
+    delete:
+      summary: Remove connection
+      tags: [Connections]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: Connection removed
 
   /conditions:
     get:
@@ -1765,68 +1687,26 @@ components:
         - doctorId
         - sentAt
 
-    Group:
+    Connection:
       type: object
       properties:
         id:
           type: integer
-        name:
-          type: string
-        description:
-          type: ["string", "null"]
-        createdById:
+        senderId:
           type: integer
+        receiverId:
+          type: integer
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
         createdAt:
           type: string
-        memberCount:
-          type: integer
-      required: [id, name, createdById, createdAt]
-
-    GroupDetail:
-      allOf:
-        - $ref: "#/components/schemas/Group"
-        - type: object
-          properties:
-            members:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                  email:
-                    type: string
-                  role:
-                    type: string
-                required: [id, name, email]
-
-    CreateGroupBody:
-      type: object
-      properties:
-        name:
+          format: date-time
+        senderName:
           type: string
-        description:
+        receiverName:
           type: string
-      required: [name]
-
-    GroupMessage:
-      type: object
-      properties:
-        id:
-          type: integer
-        groupId:
-          type: integer
-        userId:
-          type: integer
-        userName:
-          type: string
-        content:
-          type: string
-        createdAt:
-          type: string
-      required: [id, groupId, userId, content, createdAt]
+      required: [id, senderId, receiverId, status, createdAt]
 
     ShareRecordBody:
       type: object

@@ -12,7 +12,7 @@ import familyRouter from "./family";
 import emergencyContactsRouter from "./emergency_contacts";
 import conditionsRouter from "./conditions";
 import adminRouter from "./admin";
-import groupsRouter from "./groups";
+import connectionsRouter from "./connections";
 
 const router: IRouter = Router();
 
@@ -29,6 +29,6 @@ router.use(familyRouter);
 router.use(emergencyContactsRouter);
 router.use(conditionsRouter);
 router.use(adminRouter);
-router.use(groupsRouter);
+router.use(connectionsRouter);
 
 export default router;

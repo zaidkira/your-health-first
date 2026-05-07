@@ -444,39 +444,23 @@ export interface SharedRecord {
   senderName?: string | null;
 }
 
-export interface Group {
+export type ConnectionStatus =
+  (typeof ConnectionStatus)[keyof typeof ConnectionStatus];
+
+export const ConnectionStatus = {
+  pending: "pending",
+  accepted: "accepted",
+  rejected: "rejected",
+} as const;
+
+export interface Connection {
   id: number;
-  name: string;
-  /** @nullable */
-  description?: string | null;
-  createdById: number;
+  senderId: number;
+  receiverId: number;
+  status: ConnectionStatus;
   createdAt: string;
-  memberCount?: number;
-}
-
-export type GroupDetailMembersItem = {
-  id: number;
-  name: string;
-  email: string;
-  role?: string;
-};
-
-export type GroupDetail = Group & {
-  members?: GroupDetailMembersItem[];
-};
-
-export interface CreateGroupBody {
-  name: string;
-  description?: string;
-}
-
-export interface GroupMessage {
-  id: number;
-  groupId: number;
-  userId: number;
-  userName?: string;
-  content: string;
-  createdAt: string;
+  senderName?: string;
+  receiverName?: string;
 }
 
 export interface ShareRecordBody {
@@ -532,10 +516,18 @@ export type ReplyToSharedRecordBody = {
   reply: string;
 };
 
-export type InviteToGroupBody = {
+export type PostConnectionsBody = {
   email: string;
 };
 
-export type SendGroupMessageBody = {
-  content: string;
+export type PatchConnectionsIdBodyStatus =
+  (typeof PatchConnectionsIdBodyStatus)[keyof typeof PatchConnectionsIdBodyStatus];
+
+export const PatchConnectionsIdBodyStatus = {
+  accepted: "accepted",
+  rejected: "rejected",
+} as const;
+
+export type PatchConnectionsIdBody = {
+  status: PatchConnectionsIdBodyStatus;
 };
