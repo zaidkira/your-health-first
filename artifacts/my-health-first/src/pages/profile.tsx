@@ -525,7 +525,6 @@ export default function Profile() {
                         <FormMessage />
                       </FormItem>
                     )} />
-                    </div>
                   </div>
                 )}
 

@@ -181,7 +181,6 @@ export default function Doctors() {
           {specialty && <> in <span className="font-semibold text-foreground">{specialty}</span></>}
           {wilaya && <> · <span className="font-semibold text-foreground">{wilaya}</span></>}
         </p>
-        </p>
       )}
 
       <Tabs defaultValue="list" className="w-full">
