@@ -272,7 +272,7 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   if (user.role === "doctor" && parsed.data.doctorProfile) {
     const dp = parsed.data.doctorProfile;
     const existing = await db.select().from(doctorsTable)
-      .where(eq(doctorsTable.name, user.name));
+      .where(eq(doctorsTable.userId, userId));
 
     if (existing.length > 0) {
       await db.update(doctorsTable)
@@ -289,9 +289,10 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
           lat: dp.lat ?? existing[0].lat,
           lng: dp.lng ?? existing[0].lng,
         })
-        .where(eq(doctorsTable.name, user.name));
+        .where(eq(doctorsTable.userId, userId));
     } else {
       await db.insert(doctorsTable).values({
+        userId,
         name: updated.name, specialty: dp.specialty,
         wilaya: updated.wilaya ?? "Algiers", address: dp.address,
         phone: updated.phone ?? null,
@@ -318,7 +319,7 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   if (user.role === "pharmacy" && parsed.data.pharmacyProfile) {
     const pp = parsed.data.pharmacyProfile;
     const existing = await db.select().from(pharmaciesTable)
-      .where(eq(pharmaciesTable.name, user.name));
+      .where(eq(pharmaciesTable.userId, userId));
 
     const newOpenTime  = pp.is24h ? "00:00" : (pp.openTime  ?? "08:00");
     const newCloseTime = pp.is24h ? "23:59" : (pp.closeTime ?? "21:00");
@@ -334,9 +335,10 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
           lat: pp.lat ?? existing[0].lat,
           lng: pp.lng ?? existing[0].lng,
         })
-        .where(eq(pharmaciesTable.name, user.name));
+        .where(eq(pharmaciesTable.userId, userId));
     } else {
       await db.insert(pharmaciesTable).values({
+        userId,
         name: updated.name, wilaya: updated.wilaya ?? "Algiers",
         address: pp.address, phone: updated.phone ?? null,
         isOpenNow: true, is24h: pp.is24h ?? false,

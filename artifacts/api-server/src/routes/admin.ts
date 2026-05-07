@@ -31,7 +31,7 @@ async function buildUserResponse(user: typeof usersTable.$inferSelect) {
     };
 
     if (user.role === "doctor") {
-      const docs = await db.select().from(doctorsTable).where(eq(doctorsTable.name, user.name));
+      const docs = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, user.id));
       const doc = docs[0];
       if (doc) {
         response.doctorProfile = {
@@ -46,7 +46,7 @@ async function buildUserResponse(user: typeof usersTable.$inferSelect) {
     }
 
     if (user.role === "pharmacy") {
-      const phs = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, user.name));
+      const phs = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.userId, user.id));
       const ph = phs[0];
       if (ph) {
         response.pharmacyProfile = {
@@ -138,7 +138,7 @@ router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Prom
 
   if (newRole === "doctor" && doctorProfile) {
     const dp = doctorProfile;
-    const existingDocs = await db.select().from(doctorsTable).where(eq(doctorsTable.name, existing.name));
+    const existingDocs = await db.select().from(doctorsTable).where(eq(doctorsTable.userId, targetId));
     if (existingDocs.length > 0) {
       await db.update(doctorsTable).set({
         name: updated.name,
@@ -150,9 +150,10 @@ router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Prom
         availableHours: dp.availableHours,
         consultationFee: dp.consultationFee,
         isOnlineConsultation: dp.isOnlineConsultation ?? false,
-      }).where(eq(doctorsTable.name, existing.name));
+      }).where(eq(doctorsTable.userId, targetId));
     } else {
       await db.insert(doctorsTable).values({
+        userId: targetId,
         name: updated.name,
         specialty: dp.specialty,
         wilaya: updated.wilaya ?? "Algiers",
@@ -172,7 +173,7 @@ router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Prom
     const pp = pharmacyProfile;
     const newOpenTime  = pp.is24h ? "00:00" : (pp.openTime  ?? "08:00");
     const newCloseTime = pp.is24h ? "23:59" : (pp.closeTime ?? "21:00");
-    const existingPhs = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.name, existing.name));
+    const existingPhs = await db.select().from(pharmaciesTable).where(eq(pharmaciesTable.userId, targetId));
     if (existingPhs.length > 0) {
       await db.update(pharmaciesTable).set({
         name: updated.name,
@@ -182,9 +183,10 @@ router.put("/admin/users/:id", requireAuth, requireAdmin, async (req, res): Prom
         is24h: pp.is24h ?? false,
         openTime: newOpenTime,
         closeTime: newCloseTime,
-      }).where(eq(pharmaciesTable.name, existing.name));
+      }).where(eq(pharmaciesTable.userId, targetId));
     } else {
       await db.insert(pharmaciesTable).values({
+        userId: targetId,
         name: updated.name,
         wilaya: updated.wilaya ?? "Algiers",
         address: pp.address,
@@ -222,11 +224,11 @@ router.delete("/admin/users/:id", requireAuth, requireAdmin, async (req, res): P
     return;
   }
 
-  // Delete associated doctor/pharmacy profile if exists (linked by name in current schema)
+  // Delete associated doctor/pharmacy profile if exists
   if (existing.role === "doctor") {
-    await db.delete(doctorsTable).where(eq(doctorsTable.name, existing.name));
+    await db.delete(doctorsTable).where(eq(doctorsTable.userId, targetId));
   } else if (existing.role === "pharmacy") {
-    await db.delete(pharmaciesTable).where(eq(pharmaciesTable.name, existing.name));
+    await db.delete(pharmaciesTable).where(eq(pharmaciesTable.userId, targetId));
   }
 
   await db.delete(usersTable).where(eq(usersTable.id, targetId));
