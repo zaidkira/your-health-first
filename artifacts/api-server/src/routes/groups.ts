@@ -42,7 +42,7 @@ router.post("/groups", requireAuth, async (req, res): Promise<void> => {
 
 router.get("/groups/:id", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
-  const groupId = parseInt(req.params.id);
+  const groupId = parseInt(req.params.id as string);
 
   const [membership] = await db.select().from(groupMembersTable).where(and(eq(groupMembersTable.groupId, groupId), eq(groupMembersTable.userId, userId)));
   if (!membership) { res.status(403).json({ error: "Not a member" }); return; }
@@ -61,7 +61,7 @@ router.get("/groups/:id", requireAuth, async (req, res): Promise<void> => {
 
 router.delete("/groups/:id", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
-  const groupId = parseInt(req.params.id);
+  const groupId = parseInt(req.params.id as string);
 
   const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
   if (!group) { res.status(404).json({ error: "Group not found" }); return; }
@@ -76,7 +76,7 @@ router.delete("/groups/:id", requireAuth, async (req, res): Promise<void> => {
 
 router.post("/groups/:id/members", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
-  const groupId = parseInt(req.params.id);
+  const groupId = parseInt(req.params.id as string);
   const { email } = req.body;
 
   const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
@@ -98,8 +98,8 @@ router.post("/groups/:id/members", requireAuth, async (req, res): Promise<void> 
 
 router.delete("/groups/:groupId/members/:userId", requireAuth, async (req, res): Promise<void> => {
   const adminId = getUserId(req);
-  const groupId = parseInt(req.params.groupId);
-  const targetUserId = parseInt(req.params.userId);
+  const groupId = parseInt(req.params.groupId as string);
+  const targetUserId = parseInt(req.params.userId as string);
 
   const [group] = await db.select().from(groupsTable).where(eq(groupsTable.id, groupId));
   if (!group) { res.status(404).json({ error: "Group not found" }); return; }
@@ -115,7 +115,7 @@ router.delete("/groups/:groupId/members/:userId", requireAuth, async (req, res):
 
 router.get("/groups/:id/messages", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
-  const groupId = parseInt(req.params.id);
+  const groupId = parseInt(req.params.id as string);
 
   const [membership] = await db.select().from(groupMembersTable).where(and(eq(groupMembersTable.groupId, groupId), eq(groupMembersTable.userId, userId)));
   if (!membership) { res.status(403).json({ error: "Not a member" }); return; }
@@ -132,7 +132,7 @@ router.get("/groups/:id/messages", requireAuth, async (req, res): Promise<void> 
 
 router.post("/groups/:id/messages", requireAuth, async (req, res): Promise<void> => {
   const userId = getUserId(req);
-  const groupId = parseInt(req.params.id);
+  const groupId = parseInt(req.params.id as string);
   const { content } = req.body;
   if (!content) { res.status(400).json({ error: "Content is required" }); return; }
 
