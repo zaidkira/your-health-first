@@ -391,11 +391,24 @@ export default function Records() {
                       <p className="text-xs text-muted-foreground">{format(parseISO(record.recordDate), "MMMM d, yyyy")}</p>
                       {record.description && <p className="text-sm text-muted-foreground line-clamp-2">{record.description}</p>}
                       {record.fileUrl && (
-                        <a href={record.fileUrl} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1">
-                          <Download className="h-3 w-3" />
-                          {record.fileName ?? "View File"}
-                        </a>
+                        <div className="pt-2">
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="w-full gap-2 h-8 text-xs bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+                            asChild
+                          >
+                            <a 
+                              href={record.fileUrl} 
+                              download={record.fileName || `record-${record.id}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download {record.fileName ? "Document" : "File"}
+                            </a>
+                          </Button>
+                        </div>
                       )}
                       <Button size="sm" variant="outline" className="w-full gap-2 mt-2" onClick={() => openShare(record.id)}>
                         <Send className="h-3.5 w-3.5" />Send to Doctor
@@ -472,11 +485,24 @@ export default function Records() {
                       {sr.message && <p className="text-sm text-muted-foreground italic">"{sr.message}"</p>}
                       {sr.record?.description && <p className="text-sm text-muted-foreground line-clamp-2">{sr.record.description}</p>}
                       {sr.record?.fileUrl && (
-                        <a href={sr.record.fileUrl} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline">
-                          <Download className="h-3 w-3" />
-                          {sr.record.fileName ?? "View File"}
-                        </a>
+                        <div className="pt-2">
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="w-full gap-2 h-8 text-xs bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+                            asChild
+                          >
+                            <a 
+                              href={sr.record.fileUrl} 
+                              download={sr.record.fileName || `record-${sr.record.id}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download {sr.record.fileName ? "Document" : "Medical Record"}
+                            </a>
+                          </Button>
+                        </div>
                       )}
                       
                       {sr.doctorReply ? (
