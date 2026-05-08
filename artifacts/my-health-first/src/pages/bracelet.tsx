@@ -47,7 +47,7 @@ export default function BraceletPage() {
   const queryClient = useQueryClient();
   const [deviceIdInput, setDeviceIdInput] = useState("");
   const [isBleConnecting, setIsBleConnecting] = useState(false);
-  const [bleDevice, setBleDevice] = useState<BluetoothDevice | null>(null);
+  const [bleDevice, setBleDevice] = useState<any>(null);
 
   const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
   const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
@@ -56,7 +56,7 @@ export default function BraceletPage() {
   const connectBluetooth = async () => {
     try {
       setIsBleConnecting(true);
-      const device = await navigator.bluetooth.requestDevice({
+      const device = await (navigator as any).bluetooth.requestDevice({
         filters: [{ name: "MyHealthBracelet" }],
         optionalServices: [SERVICE_UUID]
       });
@@ -100,7 +100,7 @@ export default function BraceletPage() {
           "x-api-key": "bracelet-secret-key" // Using the same key for now
         },
         body: JSON.stringify({
-          device_id: user?.deviceId || "BLE_DEVICE",
+          device_id: (user as any)?.deviceId || "BLE_DEVICE",
           heartRate,
           spo2,
           steps,
@@ -182,7 +182,7 @@ export default function BraceletPage() {
           <h1 className="text-3xl font-bold tracking-tight">Health Bracelet</h1>
           <p className="text-muted-foreground mt-1">Real-time vitals monitoring from your wearable device.</p>
         </div>
-        {!user?.deviceId && (
+        {! (user as any)?.deviceId && (
           <Badge variant="outline" className="px-3 py-1 text-sm bg-yellow-50 text-yellow-700 border-yellow-200">
             Device Not Linked
           </Badge>
@@ -255,7 +255,7 @@ export default function BraceletPage() {
       </div>
 
       {/* Connect Device Section */}
-      {!user?.deviceId && (
+      {! (user as any)?.deviceId && (
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
