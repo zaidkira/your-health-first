@@ -25,7 +25,7 @@ export default function Dashboard() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!user?.id && isPatient,
+    enabled: !!user?.id,
     refetchInterval: 10000,
   });
 
@@ -216,7 +216,7 @@ export default function Dashboard() {
         </div>
 
         {/* New Bracelet Live Monitor Card */}
-        {isPatient && (user as any)?.deviceId && (
+        {(user as any)?.deviceId && (
           <div className="md:col-span-2 lg:col-span-1">
             <Card className="h-full border-primary/20 bg-gradient-to-br from-background to-primary/5">
               <CardHeader className="pb-3">

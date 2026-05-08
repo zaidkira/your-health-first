@@ -46,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   
   if (user?.role === "doctor" || user?.role === "pharmacy") {
     navItems = BASE_NAV_ITEMS.filter(item => 
-      ["Dashboard", "Doctors", "Pharmacies", "Medical Records"].includes(item.name)
+      ["Dashboard", "Doctors", "Pharmacies", "Medical Records", "Health Bracelet"].includes(item.name)
     );
   }
 
