@@ -8,6 +8,11 @@ const router = Router();
 
 const BRACELET_API_KEY = process.env.BRACELET_API_KEY || "bracelet-secret-key";
 
+// Test route to verify the router is mounted
+router.get("/status", (_req, res) => {
+  res.json({ status: "active", message: "Bracelet API is online" });
+});
+
 // Ingest data from ESP32
 router.post("/data", async (req: Request, res: Response): Promise<any> => {
   const apiKey = req.headers["x-api-key"] as string;
