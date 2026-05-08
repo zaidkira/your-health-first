@@ -17,6 +17,7 @@ import Family from "@/pages/family";
 import Conditions from "@/pages/conditions";
 import Profile from "@/pages/profile";
 import AdminUsers from "@/pages/admin-users";
+import Bracelet from "@/pages/bracelet";
 import AppLayout from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,9 @@ function Router() {
       </Route>
       <Route path="/admin/users">
         <ProtectedRoute component={AdminUsers} />
+      </Route>
+      <Route path="/dashboard/bracelet">
+        <ProtectedRoute component={Bracelet} />
       </Route>
       <Route component={NotFound} />
     </Switch>

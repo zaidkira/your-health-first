@@ -13,6 +13,7 @@ import emergencyContactsRouter from "./emergency_contacts";
 import conditionsRouter from "./conditions";
 import adminRouter from "./admin";
 import connectionsRouter from "./connections";
+import braceletRouter from "./bracelet";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(emergencyContactsRouter);
 router.use(conditionsRouter);
 router.use(adminRouter);
 router.use(connectionsRouter);
+router.use("/bracelet", braceletRouter);
 
 export default router;

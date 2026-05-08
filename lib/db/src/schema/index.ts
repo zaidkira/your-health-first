@@ -10,3 +10,4 @@ export * from "./conditions";
 export * from "./emergency_contacts";
 export * from "./groups";
 export * from "./connections";
+export * from "./bracelet_readings";

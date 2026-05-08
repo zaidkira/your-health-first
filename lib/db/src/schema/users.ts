@@ -11,6 +11,7 @@ export const usersTable = pgTable("users", {
   wilaya: text("wilaya"),
   bloodType: text("blood_type"),
   role: text("role").notNull().default("patient"),
+  deviceId: text("device_id").unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
