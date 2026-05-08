@@ -9,8 +9,8 @@ const router = Router();
 const BRACELET_API_KEY = process.env.BRACELET_API_KEY || "bracelet-secret-key";
 
 // Ingest data from ESP32
-router.post("/data", async (req: Request, res: Response) => {
-  const apiKey = req.headers["x-api-key"];
+router.post("/data", async (req: Request, res: Response): Promise<any> => {
+  const apiKey = req.headers["x-api-key"] as string;
   
   if (apiKey !== BRACELET_API_KEY) {
     return res.status(401).json({ error: "Invalid API Key" });
@@ -36,16 +36,16 @@ router.post("/data", async (req: Request, res: Response) => {
       activity
     });
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     logger.error({ err }, "Failed to save bracelet reading");
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Get latest readings for a user
-router.get("/latest/:userId", requireAuth, async (req: Request, res: Response) => {
-  const userId = parseInt(req.params.userId);
+router.get("/latest/:userId", requireAuth, async (req: Request, res: Response): Promise<any> => {
+  const userId = parseInt(req.params.userId as string);
 
   try {
     const readings = await db.select()
@@ -55,15 +55,15 @@ router.get("/latest/:userId", requireAuth, async (req: Request, res: Response) =
       .limit(20);
 
     // Return in chronological order (oldest to newest) for charts
-    res.json(readings.reverse());
+    return res.json(readings.reverse());
   } catch (err) {
     logger.error({ err }, "Failed to fetch bracelet readings");
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Link device to user
-router.post("/link", requireAuth, async (req: Request, res: Response) => {
+router.post("/link", requireAuth, async (req: Request, res: Response): Promise<any> => {
   const { device_id } = req.body;
   const userId = (req as any).userId;
 
@@ -72,10 +72,10 @@ router.post("/link", requireAuth, async (req: Request, res: Response) => {
       .set({ deviceId: device_id })
       .where(eq(usersTable.id, userId));
 
-    res.json({ success: true, message: "Device linked successfully" });
+    return res.json({ success: true, message: "Device linked successfully" });
   } catch (err) {
     logger.error({ err }, "Failed to link device");
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
