@@ -173,7 +173,10 @@ export default function Pharmacies() {
         <div className="flex items-center justify-between mb-4">
           <TabsList>
             <TabsTrigger value="list" className="gap-2">
-              <Store className="h-4 w-4" /> List View
+              <Store className="h-4 w-4" /> Pharmacies
+            </TabsTrigger>
+            <TabsTrigger value="medicines" className="gap-2">
+              <Pill className="h-4 w-4" /> Medicines
             </TabsTrigger>
             <TabsTrigger value="map" className="gap-2">
               <MapIcon className="h-4 w-4" /> Map View
@@ -259,6 +262,66 @@ export default function Pharmacies() {
                   </Card>
                 );
               })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="medicines" className="mt-0">
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground">Searching medicines...</div>
+          ) : !pharmacies ? null : (
+            <div className="grid gap-4">
+              {pharmacies.flatMap(p => (p.medicines || []).map((m: any, i: number) => ({ ...m, pharmacy: p, uniqueKey: `${p.id}-${m.name}-${i}` })))
+                .filter(m => !searchTerm || m.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .length === 0 ? (
+                <div className="text-center py-16 flex flex-col items-center text-muted-foreground">
+                  <Pill className="h-12 w-12 mb-3 opacity-20" />
+                  <p className="font-medium">No medicines found</p>
+                  <p className="text-sm mt-1">Try a different search term.</p>
+                </div>
+              ) : (
+                <div className="bg-card border rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b bg-muted/30 text-sm font-semibold text-muted-foreground">
+                    <div className="col-span-5 sm:col-span-6">Medicine Name</div>
+                    <div className="col-span-4 sm:col-span-4">Pharmacy</div>
+                    <div className="col-span-3 sm:col-span-2 text-right">Price</div>
+                  </div>
+                  <div className="divide-y">
+                    {pharmacies.flatMap(p => (p.medicines || []).map((m: any, i: number) => ({ ...m, pharmacy: p, uniqueKey: `${p.id}-${m.name}-${i}` })))
+                      .filter(m => !searchTerm || m.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((med) => (
+                        <div key={med.uniqueKey} className="grid grid-cols-12 gap-4 p-4 items-center text-sm hover:bg-muted/10 transition-colors">
+                          <div className="col-span-5 sm:col-span-6 flex items-center gap-2">
+                            {med.available ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-red-400" />}
+                            <span className={`font-medium ${!med.available && "text-muted-foreground line-through"}`}>{med.name}</span>
+                          </div>
+                          <div className="col-span-4 sm:col-span-4">
+                            <div className="flex flex-col">
+                              <span className="font-medium truncate">{med.pharmacy.name}</span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                {med.pharmacy.isOpenNow ? (
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                ) : (
+                                  <span className="h-1.5 w-1.5 rounded-full bg-muted" />
+                                )}
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                  {med.pharmacy.isOpenNow ? "Open" : "Closed"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-span-3 sm:col-span-2 text-right">
+                            {med.available && med.price ? (
+                              <span className="font-bold text-primary">{med.price.toLocaleString()} DZD</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Out of stock</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
