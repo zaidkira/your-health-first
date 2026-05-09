@@ -17,7 +17,10 @@ router.get("/status", (_req, res) => {
 router.post("/data", async (req: Request, res: Response): Promise<any> => {
   const apiKey = req.headers["x-api-key"] as string;
   
+  logger.info({ device_id: req.body.device_id }, "Received bracelet data request");
+
   if (apiKey !== BRACELET_API_KEY) {
+    logger.warn({ received: apiKey }, "Invalid Bracelet API Key");
     return res.status(401).json({ error: "Invalid API Key" });
   }
 
@@ -28,7 +31,11 @@ router.post("/data", async (req: Request, res: Response): Promise<any> => {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.deviceId, device_id)).limit(1);
 
     if (!user) {
-      return res.status(404).json({ error: "Device not linked to any user" });
+      logger.warn({ device_id }, "Unrecognized Device ID received");
+      return res.status(400).json({ 
+        error: "Unrecognized Device", 
+        message: `Device ID "${device_id}" is not linked to any user.` 
+      });
     }
 
     // Save reading
@@ -41,6 +48,7 @@ router.post("/data", async (req: Request, res: Response): Promise<any> => {
       activity
     });
 
+    logger.info({ userId: user.id }, "Successfully saved bracelet reading");
     return res.json({ success: true });
   } catch (err) {
     logger.error({ err }, "Failed to save bracelet reading");

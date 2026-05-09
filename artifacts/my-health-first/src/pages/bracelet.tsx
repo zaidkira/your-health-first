@@ -93,11 +93,11 @@ export default function BraceletPage() {
 
   const forwardDataToBackend = async (heartRate: number, spo2: number, steps: number) => {
     try {
-      await fetch("/api/bracelet/data", {
+      const response = await fetch("/api/bracelet/data", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-api-key": "bracelet-secret-key" // Using the same key for now
+          "x-api-key": "bracelet-secret-key"
         },
         body: JSON.stringify({
           device_id: (user as any)?.deviceId || "BLE_DEVICE",
@@ -107,9 +107,15 @@ export default function BraceletPage() {
           activity: steps > 10 ? "active" : "resting"
         }),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/bracelet/latest", user?.id] });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Backend error (${response.status}):`, errorText);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["/api/bracelet/latest", user?.id] });
+      }
     } catch (err) {
-      console.error("Failed to forward BLE data:", err);
+      console.error("Network error forwarding BLE data:", err);
     }
   };
 

@@ -17,6 +17,7 @@ import braceletRouter from "./bracelet";
 
 const router: IRouter = Router();
 
+router.use("/bracelet", braceletRouter);
 router.use(healthRouter);
 router.use(authRouter);
 router.use(dashboardRouter);
@@ -31,6 +32,5 @@ router.use(emergencyContactsRouter);
 router.use(conditionsRouter);
 router.use(adminRouter);
 router.use(connectionsRouter);
-router.use("/bracelet", braceletRouter);
 
 export default router;
