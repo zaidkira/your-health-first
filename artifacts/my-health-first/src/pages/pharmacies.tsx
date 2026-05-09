@@ -14,19 +14,26 @@ const WILAYAS = ["Algiers", "Oran", "Constantine", "Annaba", "Blida", "Setif", "
 
 export default function Pharmacies() {
   const [medicine, setMedicine] = useState("");
+  const [pharmacyName, setPharmacyName] = useState("");
   const [wilaya, setWilaya] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchPharmacy, setSearchPharmacy] = useState("");
   const [searchWilaya, setSearchWilaya] = useState("");
 
   // Always fetch all pharmacies for stats
   const { data: allPharmacies } = useListPharmacies({}, { query: { queryKey: ["pharmacies-all"] as any } });
   const { data: pharmacies, isLoading } = useListPharmacies(
-    { medicine: searchTerm || undefined, wilaya: searchWilaya && searchWilaya !== "all" ? searchWilaya : undefined },
-    { query: { queryKey: ["pharmacies", searchTerm, searchWilaya] as any } }
+    { 
+      medicine: searchTerm || undefined, 
+      wilaya: searchWilaya && searchWilaya !== "all" ? searchWilaya : undefined,
+      ...(searchPharmacy ? { name: searchPharmacy } as any : {})
+    },
+    { query: { queryKey: ["pharmacies", searchTerm, searchPharmacy, searchWilaya] as any } }
   );
 
   function handleSearch() {
     setSearchTerm(medicine);
+    setSearchPharmacy(pharmacyName);
     setSearchWilaya(wilaya);
   }
 
@@ -131,28 +138,34 @@ export default function Pharmacies() {
       )}
 
       {/* Search bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search medicine name..." value={medicine} onChange={e => setMedicine(e.target.value)}
+          <Pill className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Search medicine (e.g. Doliprane)..." value={medicine} onChange={e => setMedicine(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSearch()} />
+        </div>
+        <div className="relative flex-1">
+          <Store className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Search pharmacy name..." value={pharmacyName} onChange={e => setPharmacyName(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSearch()} />
         </div>
         <Select value={wilaya || "all"} onValueChange={v => { setWilaya(v); setSearchWilaya(v); }}>
-          <SelectTrigger className="sm:w-44"><SelectValue placeholder="All Wilayas" /></SelectTrigger>
+          <SelectTrigger className="lg:w-44"><SelectValue placeholder="All Wilayas" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Wilayas</SelectItem>
             {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={handleSearch} className="px-8">Search</Button>
       </div>
 
       {/* Results count */}
       {!isLoading && pharmacies && (
         <p className="text-sm text-muted-foreground">
           Showing <span className="font-semibold text-foreground">{pharmacies.length}</span> pharmacy{pharmacies.length !== 1 ? "ies" : ""}
-          {searchTerm && <> with <span className="font-semibold text-foreground">"{searchTerm}"</span></>}
-          {searchWilaya && <> in <span className="font-semibold text-foreground">{searchWilaya}</span></>}
+          {searchTerm && <> with medicine <span className="font-semibold text-foreground">"{searchTerm}"</span></>}
+          {searchPharmacy && <> matching <span className="font-semibold text-foreground">"{searchPharmacy}"</span></>}
+          {searchWilaya && searchWilaya !== "all" && <> in <span className="font-semibold text-foreground">{searchWilaya}</span></>}
         </p>
       )}
 

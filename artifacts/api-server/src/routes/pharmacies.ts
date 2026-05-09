@@ -50,6 +50,11 @@ router.get("/pharmacies", async (req, res): Promise<void> => {
     const search = params.data.wilaya.toLowerCase();
     filtered = filtered.filter(p => p.wilaya.toLowerCase().includes(search));
   }
+  
+  if (req.query.name) {
+    const search = String(req.query.name).toLowerCase();
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(search));
+  }
 
   const result = filtered.map(p => {
     let meds = JSON.parse(p.medicinesJson ?? "[]");
