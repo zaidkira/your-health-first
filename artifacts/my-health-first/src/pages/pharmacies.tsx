@@ -250,17 +250,27 @@ export default function Pharmacies() {
 
                           <div className="space-y-1.5">
                             {pharmacy.medicines.map((med: any, i: number) => (
-                              <div key={i} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
-                                <div className="flex items-center gap-2">
+                              <div key={i} className="flex items-center justify-between text-sm py-1.5 border-b border-border/50 last:border-0">
+                                <div className="flex items-center gap-2 min-w-0">
                                   {med.available
                                     ? <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                                     : <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-                                  <span className={med.available ? "" : "text-muted-foreground line-through"}>{med.name}</span>
+                                  <div className="min-w-0">
+                                    <span className={`block truncate ${med.available ? "" : "text-muted-foreground line-through"}`}>{med.name}</span>
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                      {med.requiresPrescription && (
+                                        <Badge variant="outline" className="text-[9px] h-3.5 px-1 border-amber-400 text-amber-600">Rx</Badge>
+                                      )}
+                                      {med.quantity != null && (
+                                        <span className="text-[10px] text-muted-foreground">{med.quantity} in stock</span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                                 {med.available && med.price ? (
-                                  <span className="text-xs font-semibold text-primary">{med.price.toLocaleString()} DZD</span>
+                                  <span className="text-xs font-semibold text-primary shrink-0 ml-2">{med.price.toLocaleString()} DZD</span>
                                 ) : !med.available ? (
-                                  <span className="text-xs text-muted-foreground">Out of stock</span>
+                                  <span className="text-xs text-muted-foreground shrink-0 ml-2">Out of stock</span>
                                 ) : null}
                               </div>
                             ))}
@@ -291,18 +301,19 @@ export default function Pharmacies() {
               ) : (
                 <div className="bg-card border rounded-lg overflow-hidden">
                   <div className="grid grid-cols-12 gap-4 p-4 border-b bg-muted/30 text-sm font-semibold text-muted-foreground">
-                    <div className="col-span-5 sm:col-span-6">Medicine Name</div>
+                    <div className="col-span-4 sm:col-span-5">Medicine Name</div>
                     <div className="col-span-4 sm:col-span-4">Pharmacy</div>
-                    <div className="col-span-3 sm:col-span-2 text-right">Price</div>
+                    <div className="col-span-2 sm:col-span-2 text-center">Qty / Rx</div>
+                    <div className="col-span-2 sm:col-span-1 text-right">Price</div>
                   </div>
                   <div className="divide-y">
                     {pharmacies.flatMap(p => (p.medicines || []).map((m: any, i: number) => ({ ...m, pharmacy: p, uniqueKey: `${p.id}-${m.name}-${i}` })))
                       .filter(m => !searchTerm || m.name.toLowerCase().includes(searchTerm.toLowerCase()))
                       .map((med) => (
                         <div key={med.uniqueKey} className="grid grid-cols-12 gap-4 p-4 items-center text-sm hover:bg-muted/10 transition-colors">
-                          <div className="col-span-5 sm:col-span-6 flex items-center gap-2">
-                            {med.available ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-red-400" />}
-                            <span className={`font-medium ${!med.available && "text-muted-foreground line-through"}`}>{med.name}</span>
+                          <div className="col-span-4 sm:col-span-5 flex items-center gap-2 min-w-0">
+                            {med.available ? <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" /> : <XCircle className="h-4 w-4 text-red-400 shrink-0" />}
+                            <span className={`font-medium truncate ${!med.available && "text-muted-foreground line-through"}`}>{med.name}</span>
                           </div>
                           <div className="col-span-4 sm:col-span-4">
                             <div className="flex flex-col">
@@ -319,11 +330,21 @@ export default function Pharmacies() {
                               </div>
                             </div>
                           </div>
-                          <div className="col-span-3 sm:col-span-2 text-right">
+                          <div className="col-span-2 sm:col-span-2 flex flex-col items-center gap-1">
+                            {med.quantity != null && (
+                              <span className="text-xs text-muted-foreground">{med.quantity} units</span>
+                            )}
+                            {med.requiresPrescription ? (
+                              <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-amber-400 text-amber-600">Rx needed</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-emerald-400 text-emerald-600">No Rx</Badge>
+                            )}
+                          </div>
+                          <div className="col-span-2 sm:col-span-1 text-right">
                             {med.available && med.price ? (
                               <span className="font-bold text-primary">{med.price.toLocaleString()} DZD</span>
                             ) : (
-                              <span className="text-xs text-muted-foreground">Out of stock</span>
+                              <span className="text-xs text-muted-foreground">—</span>
                             )}
                           </div>
                         </div>
