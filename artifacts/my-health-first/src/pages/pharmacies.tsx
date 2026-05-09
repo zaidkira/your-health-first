@@ -160,7 +160,7 @@ export default function Pharmacies() {
         </div>
         <Select value={wilaya || "all"} onValueChange={v => { setWilaya(v); setSearchWilaya(v); }}>
           <SelectTrigger className="lg:w-44"><SelectValue placeholder="All Wilayas" /></SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-64 overflow-y-auto">
             <SelectItem value="all">All Wilayas</SelectItem>
             {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
           </SelectContent>
