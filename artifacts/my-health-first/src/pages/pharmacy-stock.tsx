@@ -19,7 +19,7 @@ export default function PharmacyStock() {
   
   const myPharmacy = pharmacies?.find(p => p.name === user?.name);
   
-  const [medicines, setMedicines] = useState<{name: string, available: boolean, price: number | null}[]>([]);
+  const [medicines, setMedicines] = useState<{name: string, available: boolean, price?: number | null}[]>([]);
   const [newMedName, setNewMedName] = useState("");
   const [newMedPrice, setNewMedPrice] = useState("");
   
