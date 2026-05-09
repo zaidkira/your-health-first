@@ -51,12 +51,25 @@ router.get("/pharmacies", async (req, res): Promise<void> => {
     filtered = filtered.filter(p => p.wilaya.toLowerCase().includes(search));
   }
 
-  const result = filtered.map(p => ({
-    ...p,
-    isOpenNow: checkIsOpenNow(p.is24h, p.openTime, p.closeTime),
-    medicines: JSON.parse(p.medicinesJson ?? "[]"),
-    medicinesJson: undefined,
-  }));
+  const result = filtered.map(p => {
+    let meds = JSON.parse(p.medicinesJson ?? "[]");
+    
+    // Add dummy data for demonstration if the pharmacy hasn't added any stock yet
+    if (meds.length === 0) {
+      meds = [
+        { name: "Doliprane 1000mg", available: true, price: 250 },
+        { name: "Amoxicilline 500mg", available: false, price: 450 },
+        { name: "Vitamin C", available: true, price: 300 }
+      ];
+    }
+
+    return {
+      ...p,
+      isOpenNow: checkIsOpenNow(p.is24h, p.openTime, p.closeTime),
+      medicines: meds,
+      medicinesJson: undefined,
+    };
+  });
 
   res.json(result);
 });
