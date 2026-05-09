@@ -97,10 +97,11 @@ export default function BraceletPage() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
           "x-api-key": "bracelet-secret-key"
         },
         body: JSON.stringify({
-          device_id: (user as any)?.deviceId || "BLE_DEVICE",
+          device_id: (user as any)?.deviceId || bleDevice?.name || "BLE_BRIDGE",
           heartRate,
           spo2,
           steps,
