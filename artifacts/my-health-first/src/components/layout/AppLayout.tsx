@@ -44,10 +44,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   let navItems = BASE_NAV_ITEMS;
   
-  if (user?.role === "doctor" || user?.role === "pharmacy") {
+  if (user?.role === "doctor") {
     navItems = BASE_NAV_ITEMS.filter(item => 
       ["Dashboard", "Doctors", "Pharmacies", "Medical Records", "Health Bracelet"].includes(item.name)
     );
+  }
+
+  if (user?.role === "pharmacy") {
+    navItems = BASE_NAV_ITEMS.filter(item => 
+      ["Dashboard", "Doctors", "Pharmacies", "Medical Records", "Health Bracelet"].includes(item.name)
+    );
+    navItems.push({ name: "Stock Management", href: "/pharmacy/stock", icon: Pill });
   }
 
   if (user?.role === "admin") {

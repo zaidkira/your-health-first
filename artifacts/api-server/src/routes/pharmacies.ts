@@ -8,6 +8,30 @@ import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
+function checkIsOpenNow(is24h: boolean, openTime: string, closeTime: string): boolean {
+  if (is24h) return true;
+  if (!openTime || !closeTime) return true;
+  
+  const now = new Date();
+  // We use local server time (which should be configured properly or offset to Algeria time if needed).
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour + currentMinute / 60;
+  
+  const [openH, openM] = openTime.split(':').map(Number);
+  const [closeH, closeM] = closeTime.split(':').map(Number);
+  
+  const open = (openH || 0) + (openM || 0) / 60;
+  const close = (closeH || 0) + (closeM || 0) / 60;
+  
+  if (open < close) {
+    return currentTime >= open && currentTime <= close;
+  } else {
+    // Overnight pharmacy (e.g. 20:00 to 08:00)
+    return currentTime >= open || currentTime <= close;
+  }
+}
+
 router.get("/pharmacies", async (req, res): Promise<void> => {
   const params = ListPharmaciesQueryParams.safeParse(req.query);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
@@ -29,6 +53,7 @@ router.get("/pharmacies", async (req, res): Promise<void> => {
 
   const result = filtered.map(p => ({
     ...p,
+    isOpenNow: checkIsOpenNow(p.is24h, p.openTime, p.closeTime),
     medicines: JSON.parse(p.medicinesJson ?? "[]"),
     medicinesJson: undefined,
   }));

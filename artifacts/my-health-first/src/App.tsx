@@ -18,6 +18,7 @@ import Conditions from "@/pages/conditions";
 import Profile from "@/pages/profile";
 import AdminUsers from "@/pages/admin-users";
 import Bracelet from "@/pages/bracelet";
+import PharmacyStock from "@/pages/pharmacy-stock";
 import AppLayout from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,9 @@ function Router() {
       </Route>
       <Route path="/profile">
         <ProtectedRoute component={Profile} />
+      </Route>
+      <Route path="/pharmacy/stock">
+        <ProtectedRoute component={PharmacyStock} />
       </Route>
       <Route path="/admin/users">
         <ProtectedRoute component={AdminUsers} />
