@@ -53,13 +53,14 @@ router.post("/data", async (req: Request, res: Response): Promise<any> => {
     usedDeviceId = device_id;
   }
 
-  const { heartRate, spo2, steps, activity } = req.body;
+  const { heartRate, spo2, steps, activity, familyMemberId } = req.body;
 
   try {
     // Save reading
     await db.insert(braceletReadingsTable).values({
       userId: targetUserId,
       deviceId: usedDeviceId,
+      familyMemberId: familyMemberId ? parseInt(familyMemberId) : null,
       heartRate,
       spo2,
       steps,
@@ -74,16 +75,24 @@ router.post("/data", async (req: Request, res: Response): Promise<any> => {
   }
 });
 
-// Get latest readings for a user
+// Get latest readings for a user (optionally filtered by family member)
 router.get("/latest/:userId", requireAuth, async (req: Request, res: Response): Promise<any> => {
   const userId = parseInt(req.params.userId as string);
+  const familyMemberId = req.query.familyMemberId ? parseInt(req.query.familyMemberId as string) : null;
 
   try {
-    const readings = await db.select()
+    let query = db.select()
       .from(braceletReadingsTable)
-      .where(eq(braceletReadingsTable.userId, userId))
+      .where(eq(braceletReadingsTable.userId, userId));
+
+    const allReadings = await query
       .orderBy(desc(braceletReadingsTable.timestamp))
       .limit(20);
+
+    // Filter by familyMemberId if provided
+    const readings = familyMemberId != null
+      ? allReadings.filter(r => r.familyMemberId === familyMemberId)
+      : allReadings.filter(r => r.familyMemberId == null);
 
     // Return in chronological order (oldest to newest) for charts
     return res.json(readings.reverse());

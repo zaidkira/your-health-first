@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 export const braceletReadingsTable = pgTable("bracelet_readings", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: integer("user_id").references(() => usersTable.id).notNull(),
+  familyMemberId: integer("family_member_id"),
   heartRate: integer("heart_rate").notNull(),
   spo2: integer("spo2").notNull(),
   steps: integer("steps").notNull(),

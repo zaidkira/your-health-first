@@ -17,6 +17,9 @@ router.get("/auth/debug/fix-db", async (req, res) => {
     
     await db.execute(sql`ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
     steps.push("Added user_id to pharmacies");
+
+    await db.execute(sql`ALTER TABLE bracelet_readings ADD COLUMN IF NOT EXISTS family_member_id INTEGER;`);
+    steps.push("Added family_member_id to bracelet_readings");
     
     // 2. Ensure record_shares table exists
     try {
