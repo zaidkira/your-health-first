@@ -7,7 +7,7 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // API Configuration
-const char* serverUrl = "http://YOUR_SERVER_IP:5000/api/bracelet/data";
+const char* serverUrl = "http://YOUR_SERVER_IP:8080/api/bracelet/data";
 const char* braceletApiKey = "bracelet-secret-key";
 const char* deviceId = "BRACELET_001";
 

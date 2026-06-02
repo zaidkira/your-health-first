@@ -27,6 +27,7 @@ async function buildUserResponse(user: typeof usersTable.$inferSelect) {
       wilaya: user.wilaya ?? null,
       bloodType: user.bloodType ?? null,
       role: user.role,
+      deviceId: user.deviceId ?? null,
       createdAt: user.createdAt.toISOString(),
     };
 
@@ -67,6 +68,7 @@ async function buildUserResponse(user: typeof usersTable.$inferSelect) {
       name: user.name,
       email: user.email,
       role: user.role,
+      deviceId: user.deviceId ?? null,
       createdAt: user.createdAt.toISOString(),
     };
   }

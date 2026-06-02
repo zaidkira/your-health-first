@@ -47,7 +47,7 @@ interface BraceletReading {
 type PersonSelector = { type: "self" } | { type: "family"; id: number; name: string };
 
 export default function BraceletPage() {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deviceIdInput, setDeviceIdInput] = useState("");
@@ -152,7 +152,15 @@ export default function BraceletPage() {
       if (!res.ok) throw new Error("Failed to link device");
       return res.json();
     },
-    onSuccess: () => toast({ title: "Success", description: "Bracelet linked successfully!" }),
+    onSuccess: (_, deviceId) => {
+      toast({ title: "Success", description: "Bracelet linked successfully!" });
+      if (user) {
+        login(localStorage.getItem("token") || "", {
+          ...user,
+          deviceId
+        } as any);
+      }
+    },
     onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" })
   });
 

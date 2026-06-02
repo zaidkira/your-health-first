@@ -145,7 +145,8 @@ async function getFullUserInTx(user: any, tx: any) {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
     bloodType: user.bloodType ?? null,
-    role: user.role, createdAt: user.createdAt.toISOString(),
+    role: user.role, deviceId: user.deviceId ?? null,
+    createdAt: user.createdAt.toISOString(),
   };
 
   if (user.role === "doctor") {
@@ -183,7 +184,8 @@ async function getFullUser(user: any) {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
     bloodType: user.bloodType ?? null,
-    role: user.role, createdAt: user.createdAt.toISOString(),
+    role: user.role, deviceId: user.deviceId ?? null,
+    createdAt: user.createdAt.toISOString(),
   };
 
   if (user.role === "doctor") {
@@ -256,7 +258,8 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
     bloodType: user.bloodType ?? null,
-    role: user.role, createdAt: user.createdAt.toISOString(),
+    role: user.role, deviceId: user.deviceId ?? null,
+    createdAt: user.createdAt.toISOString(),
   };
 
   if (user.role === "doctor") {
@@ -325,7 +328,8 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
     id: updated.id, name: updated.name, email: updated.email,
     phone: updated.phone ?? null, wilaya: updated.wilaya ?? null,
     bloodType: updated.bloodType ?? null,
-    role: updated.role, createdAt: updated.createdAt.toISOString(),
+    role: updated.role, deviceId: updated.deviceId ?? null,
+    createdAt: updated.createdAt.toISOString(),
   };
 
   // Update doctor profile
