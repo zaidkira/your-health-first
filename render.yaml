@@ -2,9 +2,11 @@ services:
   - type: web
     name: your-health-first
     env: node
-    buildCommand: npm install pnpm@9 && npx pnpm@9 install --no-frozen-lockfile && npx pnpm@9 run build
+    buildCommand: npm install pnpm && npx pnpm install --no-frozen-lockfile && npx pnpm run build
     startCommand: cd artifacts/api-server && pnpm run start
     envVars:
+      - key: NODE_VERSION
+        value: "22.16.0"
       - key: NODE_ENV
         value: production
       - key: BASE_PATH
