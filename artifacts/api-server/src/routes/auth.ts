@@ -12,6 +12,26 @@ const router: IRouter = Router();
 router.get("/auth/debug/fix-db", async (req, res) => {
   const steps: string[] = [];
   try {
+    // 1. Create bracelet_readings table if it doesn't exist
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS bracelet_readings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id INTEGER NOT NULL REFERENCES users(id),
+          family_member_id INTEGER,
+          heart_rate INTEGER NOT NULL,
+          spo2 INTEGER NOT NULL,
+          steps INTEGER NOT NULL,
+          activity TEXT NOT NULL,
+          timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          device_id TEXT NOT NULL
+        );
+      `);
+      steps.push("Checked/Created bracelet_readings table");
+    } catch (e: any) {
+      steps.push("Error creating bracelet_readings: " + e.message);
+    }
+
     await db.execute(sql`ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
     steps.push("Added user_id to doctors");
     
