@@ -100,9 +100,22 @@ export default function BraceletPage() {
 
       await characteristic?.startNotifications();
       characteristic?.addEventListener("characteristicvaluechanged", (event: any) => {
-        const value = new TextDecoder().decode(event.target.value);
-        const [hr, sp, st] = value.split(",").map(Number);
-        forwardDataToBackend(hr, sp, st);
+        try {
+          const value = new TextDecoder().decode(event.target.value);
+          const cleanValue = value.replace(/\0/g, "").trim();
+          const parts = cleanValue.split(",");
+          const hr = parseInt(parts[0], 10);
+          const sp = parseInt(parts[1], 10);
+          const st = parseInt(parts[2], 10);
+          
+          if (!isNaN(hr) && !isNaN(sp) && !isNaN(st)) {
+            forwardDataToBackend(hr, sp, st);
+          } else {
+            console.warn("Skipping invalid or incomplete BLE data frame:", cleanValue);
+          }
+        } catch (err) {
+          console.error("Failed to decode BLE notification data:", err);
+        }
       });
 
       device.addEventListener("gattserverdisconnected", () => {
@@ -167,6 +180,7 @@ export default function BraceletPage() {
   const latestReading = readings?.[readings.length - 1];
 
   const getStatus = (reading: BraceletReading) => {
+    if (reading.heartRate === 0 && reading.spo2 === 0) return { label: "No Finger", color: "bg-slate-400", icon: Activity };
     if (reading.spo2 < 92) return { label: "Critical", color: "bg-red-500", icon: AlertCircle };
     if (reading.heartRate > 120 || reading.heartRate < 40) return { label: "Alert", color: "bg-orange-500", icon: AlertTriangle };
     return { label: "Normal", color: "bg-emerald-500", icon: CheckCircle2 };
@@ -248,7 +262,7 @@ export default function BraceletPage() {
 
       {/* Alerts */}
       <AnimatePresence>
-        {status && status.label !== "Normal" && (
+        {status && status.label !== "Normal" && status.label !== "No Finger" && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
             <Alert variant={status.label === "Critical" ? "destructive" : "default"} className={status.label === "Alert" ? "border-orange-500 bg-orange-50" : ""}>
               <status.icon className="h-4 w-4" />
@@ -265,10 +279,10 @@ export default function BraceletPage() {
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Heart Rate" value={latestReading?.heartRate} unit="BPM" icon={Heart} accent="text-red-500" 
-          status={latestReading ? (latestReading.heartRate > 100 ? "High" : latestReading.heartRate < 60 ? "Low" : "Normal") : "--"} />
-        <StatCard title="SpO2" value={latestReading?.spo2} unit="%" icon={Wind} accent="text-blue-500"
-          status={latestReading ? (latestReading.spo2 < 95 ? "Low" : "Normal") : "--"} />
+        <StatCard title="Heart Rate" value={latestReading && latestReading.heartRate > 0 ? latestReading.heartRate : "--"} unit="BPM" icon={Heart} accent="text-red-500" 
+          status={latestReading ? (latestReading.heartRate === 0 ? "No Reading" : latestReading.heartRate > 100 ? "High" : latestReading.heartRate < 60 ? "Low" : "Normal") : "--"} />
+        <StatCard title="SpO2" value={latestReading && latestReading.spo2 > 0 ? latestReading.spo2 : "--"} unit="%" icon={Wind} accent="text-blue-500"
+          status={latestReading ? (latestReading.spo2 === 0 ? "No Reading" : latestReading.spo2 < 95 ? "Low" : "Normal") : "--"} />
         <StatCard title="Steps Today" value={latestReading?.steps} unit="steps" icon={Footprints} accent="text-emerald-500"
           status={latestReading?.activity} />
       </div>

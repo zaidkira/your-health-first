@@ -54,6 +54,14 @@ router.post("/data", async (req: Request, res: Response): Promise<any> => {
   }
 
   const { heartRate, spo2, steps, activity, familyMemberId } = req.body;
+  const parsedHeartRate = parseInt(String(heartRate), 10);
+  const parsedSpo2 = parseInt(String(spo2), 10);
+  const parsedSteps = parseInt(String(steps), 10);
+
+  if (isNaN(parsedHeartRate) || isNaN(parsedSpo2) || isNaN(parsedSteps)) {
+    logger.warn({ heartRate, spo2, steps }, "Invalid readings data types received");
+    return res.status(400).json({ error: "Invalid heartRate, spo2, or steps values" });
+  }
 
   try {
     // Save reading
@@ -61,10 +69,10 @@ router.post("/data", async (req: Request, res: Response): Promise<any> => {
       userId: targetUserId,
       deviceId: usedDeviceId,
       familyMemberId: familyMemberId ? parseInt(familyMemberId) : null,
-      heartRate,
-      spo2,
-      steps,
-      activity: activity || (steps > 10 ? "active" : "resting")
+      heartRate: parsedHeartRate,
+      spo2: parsedSpo2,
+      steps: parsedSteps,
+      activity: activity || (parsedSteps > 10 ? "active" : "resting")
     });
 
     logger.info({ userId: targetUserId }, "Successfully saved bracelet reading");
