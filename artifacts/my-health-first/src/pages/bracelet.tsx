@@ -55,6 +55,9 @@ export default function BraceletPage() {
   const [bleDevice, setBleDevice] = useState<any>(null);
   const [selectedPerson, setSelectedPerson] = useState<PersonSelector>({ type: "self" });
 
+  // Detect Web Bluetooth support (not available in WebViews / median.co)
+  const isBleSupported = typeof navigator !== "undefined" && !!(navigator as any).bluetooth;
+
   const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
   const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
@@ -84,6 +87,14 @@ export default function BraceletPage() {
   });
 
   const connectBluetooth = async () => {
+    if (!isBleSupported) {
+      toast({
+        title: "Bluetooth Not Supported",
+        description: "Web Bluetooth is not available in this browser. Please open the app in Chrome on desktop or Chrome on Android.",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       setIsBleConnecting(true);
       const device = await (navigator as any).bluetooth.requestDevice({
@@ -180,10 +191,13 @@ export default function BraceletPage() {
   const latestReading = readings?.[readings.length - 1];
 
   const getStatus = (reading: BraceletReading) => {
+    // No finger on sensor — both values are 0 or both are implausibly low together
     if (reading.heartRate === 0 && reading.spo2 === 0) return { label: "No Finger", color: "bg-slate-400", icon: Activity };
-    if (reading.spo2 < 92) return { label: "Critical", color: "bg-red-500", icon: AlertCircle };
-    if (reading.heartRate > 120 || reading.heartRate < 40) return { label: "Alert", color: "bg-orange-500", icon: AlertTriangle };
-    return { label: "Normal", color: "bg-emerald-500", icon: CheckCircle2 };
+    // Only flag critical SpO2 if heartRate is also present (finger is on sensor)
+    if (reading.heartRate > 0 && reading.spo2 > 0 && reading.spo2 < 92) return { label: "Critical", color: "bg-red-500", icon: AlertCircle };
+    if (reading.heartRate > 0 && (reading.heartRate > 120 || reading.heartRate < 40)) return { label: "Alert", color: "bg-orange-500", icon: AlertTriangle };
+    if (reading.heartRate > 0 && reading.spo2 > 0) return { label: "Normal", color: "bg-emerald-500", icon: CheckCircle2 };
+    return { label: "No Finger", color: "bg-slate-400", icon: Activity };
   };
 
   const status = latestReading ? getStatus(latestReading) : null;
@@ -209,14 +223,30 @@ export default function BraceletPage() {
         </div>
         <Button 
           variant={bleDevice ? "secondary" : "outline"}
-          className="gap-2 shrink-0"
+          className={`gap-2 shrink-0 ${!isBleSupported ? "opacity-60" : ""}`}
           onClick={connectBluetooth}
           disabled={isBleConnecting}
+          title={!isBleSupported ? "Web Bluetooth not supported in this browser" : undefined}
         >
-          <div className={`h-2 w-2 rounded-full ${bleDevice ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
+          <div className={`h-2 w-2 rounded-full ${bleDevice ? "bg-emerald-500 animate-pulse" : !isBleSupported ? "bg-orange-400" : "bg-slate-300"}`} />
           {isBleConnecting ? "Connecting..." : bleDevice ? "BLE Connected" : "Connect via Bluetooth"}
         </Button>
       </div>
+
+      {/* Browser compatibility warning */}
+      {!isBleSupported && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+          <Alert className="border-orange-400 bg-orange-50 dark:bg-orange-950/20">
+            <AlertCircle className="h-4 w-4 text-orange-500" />
+            <AlertTitle className="text-orange-700 dark:text-orange-400">Bluetooth Not Supported in This Browser</AlertTitle>
+            <AlertDescription className="text-orange-600 dark:text-orange-300">
+              The Bluetooth connection requires <strong>Google Chrome</strong> on desktop or <strong>Chrome on Android</strong>.
+              Your current browser or app (WebView) does not support the Web Bluetooth API.
+              Your bracelet data is still saved and synced automatically when connected via Chrome.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
 
       {/* Person Selector */}
       <div className="flex flex-wrap gap-2">
