@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Pill, ShieldCheck, Server, Settings2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getApiBaseUrl, saveApiBaseUrl } from "@/lib/config";
+import { getApiBaseUrl, saveApiBaseUrl, RENDER_BACKEND_URL } from "@/lib/config";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +39,7 @@ export default function Login() {
   const { login: setAuth } = useAuth();
   const { toast } = useToast();
   const loginMutation = useLogin();
-  const [serverUrl, setServerUrl] = useState(getApiBaseUrl() || "http://10.11.146.76:5000");
+  const [serverUrl, setServerUrl] = useState(getApiBaseUrl() || RENDER_BACKEND_URL);
   const [serverDialogOpen, setServerDialogOpen] = useState(false);
 
   function handleSaveServer() {
@@ -175,7 +175,7 @@ export default function Login() {
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium text-muted-foreground/80 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
               >
                 <Server className="h-3 w-3 text-sky-500" />
-                <span>Backend: {serverUrl ? serverUrl.replace(/^https?:\/\//, "") : "Direct"}</span>
+                <span>Backend: {serverUrl ? serverUrl.replace(/^https?:\/\//, "") : "Render Cloud"}</span>
                 <Settings2 className="h-2.5 w-2.5 opacity-60" />
               </button>
             </DialogTrigger>
@@ -186,7 +186,7 @@ export default function Login() {
                   API Server Connection
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  For mobile APK on your phone, set this to your computer's local Wi-Fi IP address so the phone can reach the backend.
+                  Connected to Render cloud backend. You can customize the server address or reset to default.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 pt-2">
@@ -195,7 +195,7 @@ export default function Login() {
                   <Input
                     value={serverUrl}
                     onChange={(e) => setServerUrl(e.target.value)}
-                    placeholder="http://10.11.146.76:5000"
+                    placeholder={RENDER_BACKEND_URL}
                     className="rounded-xl text-xs font-mono"
                   />
                 </div>
@@ -204,10 +204,10 @@ export default function Login() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setServerUrl("http://10.11.146.76:5000")}
+                    onClick={() => setServerUrl(RENDER_BACKEND_URL)}
                     className="text-[11px] rounded-xl flex-1"
                   >
-                    Use Host PC IP
+                    Use Render Cloud
                   </Button>
                   <Button
                     type="button"
@@ -216,7 +216,7 @@ export default function Login() {
                     onClick={() => setServerUrl("")}
                     className="text-[11px] rounded-xl flex-1"
                   >
-                    Reset (Relative)
+                    Default (Direct)
                   </Button>
                 </div>
                 <Button

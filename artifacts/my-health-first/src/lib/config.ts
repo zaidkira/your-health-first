@@ -1,6 +1,7 @@
 import { setBaseUrl as setClientBaseUrl } from "@workspace/api-client-react";
 
 const STORAGE_KEY = "healthfirst_api_url";
+export const RENDER_BACKEND_URL = "https://your-health-first.onrender.com";
 
 export function isNativePlatform(): boolean {
   if (typeof window === "undefined") return false;
@@ -15,27 +16,37 @@ export function getDefaultApiBaseUrl(): string {
   // 1. User manual override from localStorage
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved && saved.trim()) {
-    return saved.trim().replace(/\/+$/, "");
+    const trimmed = saved.trim().replace(/\/+$/, "");
+    // Automatically purge old development IP overrides so the user connects seamlessly to Render
+    if (trimmed.includes("10.11.146.76") || trimmed.includes("192.168.") || trimmed.includes("127.0.0.1:5000")) {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      return trimmed;
+    }
   }
 
-  // 2. Native Capacitor Android APK default: local development LAN IP of your host PC
+  // 2. Build-time environment variable override
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (envUrl && typeof envUrl === "string" && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, "");
+  }
+
+  // 3. Native Capacitor Android APK: always connect to Render cloud backend!
   if (isNativePlatform()) {
-    return "http://10.11.146.76:5000";
+    return RENDER_BACKEND_URL;
   }
 
-  // 3. Web browser environment
+  // 4. Web browser environment
   if (typeof window !== "undefined") {
-    // If accessed via localhost:5173, backend is on localhost:5000
+    // If accessed via localhost:5173 / localhost:3000 (local Vite dev server)
     if (window.location.port === "5173" || window.location.port === "3000") {
       return `http://${window.location.hostname}:5000`;
     }
-    // If accessed via LAN IP on browser (e.g. http://10.11.146.76:5173)
-    if (window.location.port) {
-      return `http://${window.location.hostname}:5000`;
-    }
+    // If running in production (e.g. hosted on Render), use direct relative paths
+    return "";
   }
 
-  return "";
+  return RENDER_BACKEND_URL;
 }
 
 let currentBaseUrl = getDefaultApiBaseUrl();
@@ -43,10 +54,8 @@ let currentBaseUrl = getDefaultApiBaseUrl();
 // Initialize the API client base URL
 export function initApiConfig(): void {
   currentBaseUrl = getDefaultApiBaseUrl();
-  if (currentBaseUrl) {
-    setClientBaseUrl(currentBaseUrl);
-    console.info(`[Config] API Base URL configured to: ${currentBaseUrl}`);
-  }
+  setClientBaseUrl(currentBaseUrl || null);
+  console.info(`[Config] API Base URL configured to: ${currentBaseUrl || "Direct (relative)"}`);
 }
 
 export function getApiBaseUrl(): string {
