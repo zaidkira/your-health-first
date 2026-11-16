@@ -162,21 +162,28 @@ export default function Register() {
   const isPharmacy = selectedRole === "pharmacy";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-lg bg-card border border-border rounded-xl shadow-sm p-8 my-8">
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background">
+      {/* iOS Liquid Glass Ambient Background Orbs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-gradient-to-br from-sky-400/25 to-blue-500/10 dark:from-sky-500/15 dark:to-transparent blur-[110px] animate-drift-slow" />
+        <div className="absolute top-1/3 -right-32 w-[32rem] h-[32rem] rounded-full bg-gradient-to-bl from-emerald-400/20 to-teal-500/10 dark:from-emerald-500/10 dark:to-transparent blur-[120px] animate-drift-reverse" />
+        <div className="absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-gradient-to-tr from-indigo-400/20 to-sky-400/10 dark:from-indigo-500/10 dark:to-transparent blur-[130px] animate-drift-slow" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-lg rounded-3xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/65 backdrop-blur-2xl shadow-[0_20px_60px_rgba(14,165,233,0.12)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-8 my-8">
 
         {/* Header */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-            <Pill className="h-6 w-6" />
+        <div className="flex flex-col items-center mb-6 text-center">
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white flex items-center justify-center mb-3 shadow-[0_4px_20px_rgba(14,165,233,0.45)]">
+            <Pill className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-bold">Create Account</h1>
-          <p className="text-muted-foreground text-sm mt-1">Join My Health First</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Create Account</h1>
+          <p className="text-muted-foreground text-xs mt-1">Join My Health First Algeria</p>
         </div>
 
         {/* Role selector */}
         <div className="mb-6">
-          <p className="text-sm font-medium mb-3">I am a…</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">Select Profile Type</p>
           <div className="grid grid-cols-3 gap-3">
             {ROLES.map(({ value, label, description, icon: Icon }) => {
               const active = selectedRole === value;
@@ -185,24 +192,24 @@ export default function Register() {
                   key={value}
                   type="button"
                   onClick={() => handleRoleSelect(value)}
-                  className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all focus:outline-none ${
+                  className={`relative flex flex-col items-center gap-2 p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer focus:outline-none active:scale-[0.97] ${
                     active
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-primary/40 hover:bg-muted/50"
+                      ? "border-sky-500/80 bg-sky-500/10 text-primary shadow-sm"
+                      : "border-white/80 dark:border-white/10 bg-white/50 dark:bg-slate-800/40 hover:bg-white/80 dark:hover:bg-slate-800/70"
                   }`}
                 >
                   {active && (
-                    <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                    <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center shadow-xs">
                       <Check className="h-2.5 w-2.5 text-white" />
                     </span>
                   )}
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                    active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                    active ? "bg-gradient-to-tr from-sky-500 to-cyan-400 text-white shadow-xs" : "bg-muted/70 text-muted-foreground"
                   }`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className={`text-sm font-semibold ${active ? "text-primary" : "text-foreground"}`}>{label}</p>
+                    <p className={`text-xs font-bold ${active ? "text-primary" : "text-foreground"}`}>{label}</p>
                     <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 hidden sm:block">{description}</p>
                   </div>
                 </button>

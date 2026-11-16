@@ -1,3 +1,37 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base with Medical Blue Gradient -->
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Glass Sheen Top Arc -->
+  <path d="M 0 116 C 0 51.9 51.9 0 116 0 L 396 0 C 460.1 0 512 51.9 512 116 C 512 180 380 230 256 230 C 132 230 0 180 0 116 Z" fill="url(#sheen)"/>
+
+  <!-- Medical Cross with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Vertical Bar -->
+    <rect x="224" y="116" width="64" height="280" rx="32" fill="#FFFFFF"/>
+    <!-- Horizontal Bar -->
+    <rect x="116" y="224" width="280" height="64" rx="32" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Glowing Heartbeat Pulse Tracing (ECG Wave) -->
+  <path d="M 148 256 H 202 L 218 206 L 244 316 L 268 226 L 284 276 L 298 256 H 364" 
+        stroke="#0284C7" 
+        stroke-width="15" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
 </svg>

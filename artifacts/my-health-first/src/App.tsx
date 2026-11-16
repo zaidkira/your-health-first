@@ -1,8 +1,10 @@
 import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
@@ -91,16 +93,18 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AuthProvider>
-            <Router />
-          </AuthProvider>
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter hook={useHashLocation}>
+            <AuthProvider>
+              <Router />
+            </AuthProvider>
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

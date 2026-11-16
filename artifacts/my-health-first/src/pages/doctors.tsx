@@ -84,46 +84,46 @@ export default function Doctors() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-primary">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Users className="h-5 w-5 text-primary" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <Users className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{totalDoctors}</p>
+              <p className="text-2xl font-bold tracking-tight">{totalDoctors}</p>
               <p className="text-xs text-muted-foreground">Total Doctors</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-blue-400">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-              <Wifi className="h-5 w-5 text-blue-500" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <Wifi className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{onlineCount}</p>
-              <p className="text-xs text-muted-foreground">Online Available</p>
+              <p className="text-2xl font-bold tracking-tight">{onlineCount}</p>
+              <p className="text-xs text-muted-foreground">Teleconsultation</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-amber-400">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-              <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 shadow-2xs">
+              <Star className="h-5 w-5 fill-amber-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{avgRating}</p>
+              <p className="text-2xl font-bold tracking-tight">{avgRating}</p>
               <p className="text-xs text-muted-foreground">Avg. Rating</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-emerald-400">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <Stethoscope className="h-5 w-5 text-emerald-600" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-bold leading-tight">{topSpecialty}</p>
+              <p className="text-sm font-bold leading-tight truncate">{topSpecialty}</p>
               <p className="text-xs text-muted-foreground">Top Specialty</p>
             </div>
           </CardContent>
@@ -132,11 +132,15 @@ export default function Doctors() {
 
       {/* Specialty chips */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Browse by Specialty</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">Browse by Specialty</p>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSpecialty("all")}
-            className={`px-3 py-1 rounded-full text-sm border transition-colors ${specialty === "all" || specialty === "" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+              specialty === "all" || specialty === ""
+                ? "bg-primary text-white shadow-[0_2px_10px_rgba(14,165,233,0.35)] border border-primary"
+                : "bg-white/60 dark:bg-slate-800/50 backdrop-blur-md border border-white/80 dark:border-white/10 text-muted-foreground hover:bg-white/90 hover:text-foreground"
+            }`}
           >
             All
           </button>

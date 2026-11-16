@@ -63,6 +63,8 @@ export interface UpdateProfileBody {
   wilaya?: string | null;
   /** @nullable */
   bloodType?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
   doctorProfile?: DoctorProfile;
   pharmacyProfile?: PharmacyProfile;
 }
@@ -117,6 +119,8 @@ export interface User {
   wilaya?: string | null;
   /** @nullable */
   bloodType?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
   role: UserRole;
   createdAt: string;
   doctorProfile?: DoctorProfile;

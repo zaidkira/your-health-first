@@ -165,6 +165,7 @@ async function getFullUserInTx(user: any, tx: any) {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
     bloodType: user.bloodType ?? null,
+    avatarUrl: user.avatarUrl ?? null,
     role: user.role, deviceId: user.deviceId ?? null,
     createdAt: user.createdAt.toISOString(),
   };
@@ -204,6 +205,7 @@ async function getFullUser(user: any) {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
     bloodType: user.bloodType ?? null,
+    avatarUrl: user.avatarUrl ?? null,
     role: user.role, deviceId: user.deviceId ?? null,
     createdAt: user.createdAt.toISOString(),
   };
@@ -278,6 +280,7 @@ router.get("/auth/profile", requireAuth, async (req, res): Promise<void> => {
     id: user.id, name: user.name, email: user.email,
     phone: user.phone ?? null, wilaya: user.wilaya ?? null,
     bloodType: user.bloodType ?? null,
+    avatarUrl: user.avatarUrl ?? null,
     role: user.role, deviceId: user.deviceId ?? null,
     createdAt: user.createdAt.toISOString(),
   };
@@ -331,7 +334,7 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) { res.status(401).json({ error: "User not found" }); return; }
 
-  const { name, phone, wilaya, bloodType } = parsed.data;
+  const { name, phone, wilaya, bloodType, avatarUrl } = parsed.data;
 
   const [updated] = await db
     .update(usersTable)
@@ -340,6 +343,7 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
       phone:     phone     !== undefined ? phone     : user.phone,
       wilaya:    wilaya    !== undefined ? wilaya    : user.wilaya,
       bloodType: bloodType !== undefined ? bloodType : user.bloodType,
+      avatarUrl: avatarUrl !== undefined ? avatarUrl : user.avatarUrl,
     })
     .where(eq(usersTable.id, userId))
     .returning();
@@ -348,9 +352,15 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
     id: updated.id, name: updated.name, email: updated.email,
     phone: updated.phone ?? null, wilaya: updated.wilaya ?? null,
     bloodType: updated.bloodType ?? null,
+    avatarUrl: updated.avatarUrl ?? null,
     role: updated.role, deviceId: updated.deviceId ?? null,
     createdAt: updated.createdAt.toISOString(),
   };
+
+  // Sync avatar to doctor profile image if doctor
+  if (user.role === "doctor" && avatarUrl !== undefined) {
+    await db.update(doctorsTable).set({ imageUrl: avatarUrl }).where(eq(doctorsTable.userId, userId));
+  }
 
   // Update doctor profile
   if (user.role === "doctor" && parsed.data.doctorProfile) {
@@ -439,6 +449,28 @@ router.put("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   }
 
   res.json(response);
+});
+
+// Dedicated endpoint to quickly update or clear profile picture
+router.post("/auth/avatar", requireAuth, async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  const { avatarUrl } = req.body;
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({ avatarUrl: avatarUrl ? avatarUrl : null })
+    .where(eq(usersTable.id, userId))
+    .returning();
+
+  if (updated && updated.role === "doctor") {
+    await db
+      .update(doctorsTable)
+      .set({ imageUrl: avatarUrl ? avatarUrl : null })
+      .where(eq(doctorsTable.userId, userId));
+  }
+
+  const fullUser = await getFullUser(updated);
+  res.json({ message: "Avatar updated", user: fullUser });
 });
 
 export default router;

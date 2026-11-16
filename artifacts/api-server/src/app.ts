@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import fs from "node:fs";
 import pinoHttp from "pino-http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -67,10 +68,13 @@ app.use("/api", router);
 
 // Serve static files in production
 const publicDir = path.resolve(__dirname, "../../my-health-first/dist/public");
-app.use(express.static(publicDir));
+const indexHtmlPath = path.resolve(publicDir, "index.html");
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+}
 app.use((req, res, next) => {
-  if (req.method === "GET") {
-    res.sendFile(path.resolve(publicDir, "index.html"));
+  if (req.method === "GET" && !req.path.startsWith("/api") && fs.existsSync(indexHtmlPath)) {
+    res.sendFile(indexHtmlPath);
   } else {
     next();
   }

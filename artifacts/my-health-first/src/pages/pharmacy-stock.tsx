@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Save, Loader2, Store, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiFetch } from "@/lib/api";
 
 type Medicine = {
   name: string;
@@ -41,12 +42,9 @@ export default function PharmacyStock() {
 
   const updateStockMutation = useMutation({
     mutationFn: async (meds: Medicine[]) => {
-      const res = await fetch("/api/pharmacies/medicines", {
+      const res = await apiFetch("/api/pharmacies/medicines", {
         method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(meds)
       });
       if (!res.ok) {

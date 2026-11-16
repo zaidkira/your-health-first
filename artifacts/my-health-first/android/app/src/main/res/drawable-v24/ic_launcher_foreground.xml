@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Medical Cross Vertical Bar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 47.5,35.5 A 6.5,6.5 0 0,1 60.5,35.5 L 60.5,72.5 A 6.5,6.5 0 0,1 47.5,72.5 Z" />
+
+    <!-- Medical Cross Horizontal Bar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 35.5,47.5 L 72.5,47.5 A 6.5,6.5 0 0,1 72.5,60.5 L 35.5,60.5 A 6.5,6.5 0 0,1 35.5,47.5 Z" />
+
+    <!-- Heartbeat ECG Pulse Wave -->
+    <path
+        android:pathData="M 34,54 L 43,54 L 47,43 L 53,66 L 57,47 L 60,58 L 63,54 L 74,54"
+        android:strokeColor="#0284C7"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

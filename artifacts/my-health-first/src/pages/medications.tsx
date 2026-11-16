@@ -25,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { apiFetch } from "@/lib/api";
 
 const medicationSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -482,9 +483,7 @@ function CircleMemberMeds({ userId, name }: { userId: number; name: string }) {
   const { data: meds, isLoading } = useQuery({
     queryKey: ["circle-member-meds", userId],
     queryFn: async () => {
-      const res = await fetch(`/api/connections/${userId}/medications`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await apiFetch(`/api/connections/${userId}/medications`);
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },

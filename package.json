@@ -4,7 +4,10 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "node -e \"console.log('Skipping preinstall on Windows')\"",
+    "dev": "node ./scripts/dev.mjs",
+    "start": "pnpm --filter @workspace/api-server run start",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build:apk": "pnpm --filter @workspace/my-health-first run build:apk",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

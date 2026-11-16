@@ -68,49 +68,49 @@ export default function Pharmacies() {
 
       {/* Dashboard Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-primary">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Store className="h-5 w-5 text-primary" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <Store className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{all.length}</p>
+              <p className="text-2xl font-bold tracking-tight">{all.length}</p>
               <p className="text-xs text-muted-foreground">Pharmacies</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-emerald-400">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <CheckCircle className="h-5 w-5 text-emerald-600" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <CheckCircle className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{openNowCount}</p>
+              <p className="text-2xl font-bold tracking-tight">{openNowCount}</p>
               <p className="text-xs text-muted-foreground">Open Now</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-400">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-              <Clock3 className="h-5 w-5 text-blue-500" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <Clock3 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{open24hCount}</p>
-              <p className="text-xs text-muted-foreground">Open 24h</p>
+              <p className="text-2xl font-bold tracking-tight">{open24hCount}</p>
+              <p className="text-xs text-muted-foreground">Open 24/7</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-violet-400">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
-              <Pill className="h-5 w-5 text-violet-600" />
+        <Card className="liquid-glass-card">
+          <CardContent className="p-4 flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <Pill className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{availableMeds}<span className="text-sm font-normal text-muted-foreground">/{totalMedicines}</span></p>
+              <p className="text-2xl font-bold tracking-tight">{availableMeds}<span className="text-sm font-normal text-muted-foreground">/{totalMedicines}</span></p>
               <p className="text-xs text-muted-foreground">Meds In Stock</p>
             </div>
           </CardContent>
@@ -120,11 +120,15 @@ export default function Pharmacies() {
       {/* Wilaya quick-filter chips */}
       {Object.keys(wilayaCounts).length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Browse by Wilaya</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">Browse by Wilaya</p>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => { setWilaya(""); setSearchWilaya(""); }}
-              className={`px-3 py-1 rounded-full text-sm border transition-colors ${searchWilaya === "" && wilaya === "" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+                searchWilaya === "" && wilaya === ""
+                  ? "bg-primary text-white shadow-[0_2px_10px_rgba(14,165,233,0.35)] border border-primary"
+                  : "bg-white/60 dark:bg-slate-800/50 backdrop-blur-md border border-white/80 dark:border-white/10 text-muted-foreground hover:bg-white/90 hover:text-foreground"
+              }`}
             >
               All
             </button>

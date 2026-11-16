@@ -4,21 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "set NODE_ENV=development&& pnpm run build && pnpm run start",
+    "dev": "pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.16",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
-    "zod": "catalog:",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",
     "pino": "^9",
-    "pino-http": "^10"
+    "pino-http": "^10",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

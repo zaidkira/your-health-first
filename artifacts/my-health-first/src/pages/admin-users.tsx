@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -136,9 +137,7 @@ function useAdminUsers() {
   return useQuery<AdminUser[]>({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch("/api/admin/users");
       if (!res.ok) throw new Error("Failed to fetch users");
       return res.json();
     },
@@ -147,15 +146,13 @@ function useAdminUsers() {
 }
 
 function useAdminUpdateUser() {
-  const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const res = await fetch(`/api/admin/users/${id}`, {
+      const res = await apiFetch(`/api/admin/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -172,13 +169,11 @@ function useAdminUpdateUser() {
 }
 
 function useAdminDeleteUser() {
-  const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/admin/users/${id}`, {
+      const res = await apiFetch(`/api/admin/users/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

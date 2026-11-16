@@ -34,6 +34,7 @@ import {
   Bar,
 } from "recharts";
 import { format } from "date-fns";
+import { apiFetch } from "@/lib/api";
 
 interface BraceletReading {
   id: string;
@@ -76,9 +77,7 @@ export default function BraceletPage() {
   const { data: readings, isLoading } = useQuery<BraceletReading[]>({
     queryKey,
     queryFn: async () => {
-      const res = await fetch(queryUrl, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await apiFetch(queryUrl);
       if (!res.ok) throw new Error("Failed to fetch readings");
       return res.json();
     },
@@ -144,11 +143,10 @@ export default function BraceletPage() {
   const forwardDataToBackend = async (heartRate: number, spo2: number, steps: number) => {
     try {
       const familyMemberId = selectedPerson.type === "family" ? selectedPerson.id : undefined;
-      const response = await fetch("/api/bracelet/data", {
+      const response = await apiFetch("/api/bracelet/data", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
           "x-api-key": "bracelet-secret-key"
         },
         body: JSON.stringify({
@@ -168,9 +166,9 @@ export default function BraceletPage() {
 
   const linkMutation = useMutation({
     mutationFn: async (deviceId: string) => {
-      const res = await fetch("/api/bracelet/link", {
+      const res = await apiFetch("/api/bracelet/link", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ device_id: deviceId }),
       });
       if (!res.ok) throw new Error("Failed to link device");
@@ -228,7 +226,7 @@ export default function BraceletPage() {
           disabled={isBleConnecting}
           title={!isBleSupported ? "Web Bluetooth not supported in this browser" : undefined}
         >
-          <div className={`h-2 w-2 rounded-full ${bleDevice ? "bg-emerald-500 animate-pulse" : !isBleSupported ? "bg-orange-400" : "bg-slate-300"}`} />
+          <div className={`h-2 w-2 rounded-full ${bleDevice ? "bg-emerald-500" : !isBleSupported ? "bg-orange-400" : "bg-slate-300"}`} />
           {isBleConnecting ? "Connecting..." : bleDevice ? "BLE Connected" : "Connect via Bluetooth"}
         </Button>
       </div>

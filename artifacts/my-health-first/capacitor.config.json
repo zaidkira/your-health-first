@@ -1,0 +1,12 @@
+{
+  "appId": "com.healthfirst.app",
+  "appName": "My Health First",
+  "webDir": "dist/public",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

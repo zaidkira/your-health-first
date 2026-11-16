@@ -177,6 +177,7 @@ export const UpdateProfileBody = zod.object({
   phone: zod.string().nullish(),
   wilaya: zod.string().nullish(),
   bloodType: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
   doctorProfile: zod
     .object({
       specialty: zod.string(),

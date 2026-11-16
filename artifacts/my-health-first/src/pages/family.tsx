@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { apiFetch } from "@/lib/api";
 
 const RELATIONSHIPS = ["Spouse", "Parent", "Child", "Sibling", "Grandparent", "Grandchild", "Other"];
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -257,9 +258,7 @@ function CircleMemberHealthData({ userId, name }: { userId: number; name: string
   const { data: meds, isLoading: medsLoading } = useQuery({
     queryKey: ["circle-member-meds", userId],
     queryFn: async () => {
-      const res = await fetch(`/api/connections/${userId}/medications`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await apiFetch(`/api/connections/${userId}/medications`);
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },
@@ -267,9 +266,7 @@ function CircleMemberHealthData({ userId, name }: { userId: number; name: string
   const { data: conditions, isLoading: condLoading } = useQuery({
     queryKey: ["circle-member-conditions", userId],
     queryFn: async () => {
-      const res = await fetch(`/api/connections/${userId}/conditions`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await apiFetch(`/api/connections/${userId}/conditions`);
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },
